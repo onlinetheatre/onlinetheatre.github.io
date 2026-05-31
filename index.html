@@ -1,801 +1,759 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OnlineTheater</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #f7f4ef;
-    --surface: #ffffff;
-    --surface-alt: #f0ece4;
-    --border: rgba(0,0,0,0.09);
-    --border-strong: rgba(0,0,0,0.18);
-    --text: #1a1714;
-    --text-muted: #7a746c;
-    --text-faint: #b0a99e;
-    --accent: #c1440e;
-    --accent-light: #f5e9e3;
-    --accent-dark: #8e3009;
-    --gold: #c9902a;
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-body: 'DM Sans', system-ui, sans-serif;
-  }
-  body.dark {
-    --bg: #111009;
-    --surface: #1c1a16;
-    --surface-alt: #242119;
-    --border: rgba(255,255,255,0.08);
-    --border-strong: rgba(255,255,255,0.16);
-    --text: #ede9e1;
-    --text-muted: #8a8278;
-    --text-faint: #4a4540;
-    --accent: #e05a25;
-    --accent-light: #2a1a12;
-    --accent-dark: #f07a50;
-    --gold: #d4a03a;
-  }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Theatre</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #080a0e;
+            --surface: #0e1118;
+            --surface-2: #141820;
+            --border: rgba(255,215,100,0.12);
+            --border-hover: rgba(255,215,100,0.35);
+            --gold: #e8c870;
+            --gold-dim: #c4a44a;
+            --gold-glow: rgba(232, 200, 112, 0.15);
+            --text: #f0ead6;
+            --text-muted: #8a8070;
+            --red: #e05050;
+            --curtain-l: #1a0505;
+            --curtain-r: #1a0505;
+        }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box; }
 
-  body {
-    font-family: var(--font-body);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    transition: background 0.3s, color 0.3s;
-  }
+        html { scroll-behavior: smooth; }
 
-  /* ── MASTHEAD ── */
-  .masthead {
-    border-bottom: 1px solid var(--border);
-    padding: 0 clamp(1rem, 4vw, 3rem);
-    position: relative;
-  }
-  .masthead-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 0 0.75rem;
-  }
-  .masthead-utils {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-  }
-  .util-btn {
-    font-family: var(--font-body);
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    transition: color 0.2s;
-  }
-  .util-btn:hover { color: var(--accent); }
-  .theme-btn {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    border: 1px solid var(--border-strong);
-    background: var(--surface-alt);
-    cursor: pointer;
-    font-size: 0.85rem;
-    display: flex; align-items: center; justify-content: center;
-    transition: border-color 0.2s, background 0.2s;
-    color: var(--text-muted);
-  }
-  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+        body {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-  .masthead-center {
-    text-align: center;
-    padding: 2rem 0 1.75rem;
-    position: relative;
-  }
-  .masthead-eyebrow {
-    font-size: 0.65rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    margin-bottom: 0.6rem;
-  }
-  .site-title {
-    font-family: var(--font-display);
-    font-size: clamp(2.6rem, 7vw, 4.5rem);
-    font-weight: 900;
-    line-height: 0.95;
-    color: var(--text);
-    letter-spacing: -0.02em;
-  }
-  .site-title em {
-    font-style: italic;
-    color: var(--accent);
-  }
-  .masthead-rule {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 1.25rem;
-  }
-  .masthead-rule::before, .masthead-rule::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-  .masthead-rule-text {
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    white-space: nowrap;
-  }
-  .views-badge {
-    font-size: 0.65rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    padding: 0.25rem 0.65rem;
-    border: 1px solid var(--border);
-    border-radius: 2rem;
-  }
+        /* ── Film-grain overlay ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.6;
+        }
 
-  /* ── TOOLBAR ── */
-  .toolbar {
-    max-width: 900px;
-    margin: 2rem auto 0;
-    padding: 0 clamp(1rem, 4vw, 2rem);
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .search-wrap {
-    flex: 1;
-    min-width: 200px;
-    position: relative;
-  }
-  .search-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-faint);
-    font-size: 0.85rem;
-    pointer-events: none;
-  }
-  .search-input {
-    width: 100%;
-    font-family: var(--font-body);
-    font-size: 0.9rem;
-    padding: 0.65rem 1rem 0.65rem 2.5rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .search-input::placeholder { color: var(--text-faint); }
-  .search-input:focus { border-color: var(--border-strong); }
-  .sort-select {
-    font-family: var(--font-body);
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 0.65rem 1rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text-muted);
-    outline: none;
-    cursor: pointer;
-    transition: border-color 0.2s;
-  }
-  .sort-select:focus { border-color: var(--border-strong); }
-  .add-btn {
-    font-family: var(--font-body);
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    font-weight: 500;
-    padding: 0.65rem 1.25rem;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.2s;
-  }
-  .add-btn:hover { background: var(--accent-dark); }
-  .add-btn.active { background: var(--text); }
-  .add-btn.active:hover { background: var(--text-muted); }
+        /* ── Curtain wings ── */
+        .curtain-left,
+        .curtain-right {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 80px;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .curtain-left {
+            left: 0;
+            background: linear-gradient(to right, #180303 0%, rgba(24,3,3,0.6) 60%, transparent 100%);
+        }
+        .curtain-right {
+            right: 0;
+            background: linear-gradient(to left, #180303 0%, rgba(24,3,3,0.6) 60%, transparent 100%);
+        }
 
-  /* ── ADD FORM ── */
-  .form-panel {
-    max-width: 900px;
-    margin: 1.5rem auto 0;
-    padding: 0 clamp(1rem, 4vw, 2rem);
-    display: none;
-  }
-  .form-panel.open { display: block; }
-  .form-inner {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-top: 3px solid var(--accent);
-    border-radius: 0 0 6px 6px;
-    padding: 2rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-  }
-  .form-inner .full { grid-column: 1 / -1; }
-  .form-label {
-    display: block;
-    font-size: 0.65rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 0.4rem;
-    font-weight: 500;
-  }
-  .form-ctrl {
-    font-family: var(--font-body);
-    width: 100%;
-    padding: 0.6rem 0.85rem;
-    font-size: 0.9rem;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .form-ctrl:focus { border-color: var(--border-strong); }
-  textarea.form-ctrl { resize: vertical; min-height: 100px; line-height: 1.6; }
-  .form-ctrl::placeholder { color: var(--text-faint); }
-  .publish-btn {
-    font-family: var(--font-body);
-    grid-column: 1 / -1;
-    padding: 0.8rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    font-weight: 500;
-    background: var(--text);
-    color: var(--bg);
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-  .publish-btn:hover { opacity: 0.8; }
-  .publish-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        /* ── Layout ── */
+        .stage {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 40px 80px;
+        }
 
-  /* ── FEED ── */
-  .feed-wrap {
-    max-width: 900px;
-    margin: 3rem auto 5rem;
-    padding: 0 clamp(1rem, 4vw, 2rem);
-  }
-  .feed-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 2.5rem;
-  }
-  .feed-header::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-  .feed-count {
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    white-space: nowrap;
-  }
+        /* ── Header ── */
+        header {
+            text-align: center;
+            padding: 70px 0 50px;
+            position: relative;
+        }
 
-  /* ── REVIEW CARD ── */
-  .review-card {
-    display: grid;
-    grid-template-columns: 140px 1fr;
-    gap: 2rem;
-    padding: 2rem 0;
-    border-top: 1px solid var(--border);
-    transition: border-color 0.2s;
-    position: relative;
-  }
-  .review-card:last-child { border-bottom: 1px solid var(--border); }
-  .poster-wrap {
-    position: relative;
-    flex-shrink: 0;
-  }
-  .poster-img {
-    width: 140px;
-    height: 210px;
-    object-fit: cover;
-    border-radius: 3px;
-    display: block;
-    background: var(--surface-alt);
-  }
-  .rating-badge {
-    position: absolute;
-    bottom: -8px;
-    right: -8px;
-    background: var(--accent);
-    color: #fff;
-    font-family: var(--font-display);
-    font-size: 0.9rem;
-    font-weight: 700;
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    border: 2px solid var(--bg);
-    line-height: 1;
-    letter-spacing: -0.03em;
-  }
-  .review-body { padding-top: 0.25rem; }
-  .card-meta {
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    margin-bottom: 0.85rem;
-    flex-wrap: wrap;
-  }
-  .card-title {
-    font-family: var(--font-display);
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: var(--text);
-    line-height: 1.15;
-  }
-  .card-specs {
-    font-size: 0.75rem;
-    letter-spacing: 0.06em;
-    color: var(--text-faint);
-  }
-  .card-genre {
-    font-size: 0.65rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    background: var(--accent-light);
-    color: var(--accent);
-    padding: 0.2rem 0.55rem;
-    border-radius: 3px;
-  }
-  .card-review {
-    font-size: 0.925rem;
-    line-height: 1.75;
-    color: var(--text-muted);
-    margin-bottom: 1.25rem;
-  }
-  .card-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-  .card-divider { flex: 1; height: 1px; background: var(--border); }
-  .action-btn {
-    font-family: var(--font-body);
-    font-size: 0.65rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    transition: color 0.2s;
-  }
-  .action-btn:hover { color: var(--accent); }
-  .action-btn.delete:hover { color: #c0392b; }
+        .marquee-line {
+            font-family: 'Cinzel', serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--gold-dim);
+            margin-bottom: 18px;
+            opacity: 0.8;
+        }
 
-  /* ── EMPTY / ERROR STATES ── */
-  .state-msg {
-    text-align: center;
-    padding: 4rem 0;
-    color: var(--text-faint);
-    font-size: 0.9rem;
-    letter-spacing: 0.04em;
-  }
-  .state-msg strong {
-    display: block;
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    margin-bottom: 0.5rem;
-  }
+        .marquee-line::before,
+        .marquee-line::after {
+            content: '✦';
+            margin: 0 12px;
+            opacity: 0.5;
+        }
 
-  /* ── FOOTER ── */
-  .site-footer {
-    border-top: 1px solid var(--border);
-    padding: 1.5rem clamp(1rem, 4vw, 3rem);
-    text-align: center;
-    font-size: 0.65rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-  }
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2.8rem, 8vw, 5rem);
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            margin: 0 0 10px;
+            background: linear-gradient(160deg, #f5e6b0 0%, #c4a44a 50%, #f5e6b0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+            line-height: 1;
+        }
 
-  @media (max-width: 560px) {
-    .review-card { grid-template-columns: 1fr; gap: 1rem; }
-    .poster-img { width: 100%; height: 200px; }
-    .poster-wrap { width: 100%; }
-    .rating-badge { right: 8px; }
-    .form-inner { grid-template-columns: 1fr; }
-    .form-inner .full { grid-column: 1; }
-    .masthead-utils { gap: 0.75rem; }
-  }
-</style>
+        .header-rule {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px auto 30px;
+            max-width: 360px;
+        }
+        .header-rule::before,
+        .header-rule::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--gold-dim));
+        }
+        .header-rule::after {
+            background: linear-gradient(to left, transparent, var(--gold-dim));
+        }
+        .header-rule span {
+            color: var(--gold);
+            font-size: 0.9rem;
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .theme-toggle {
+            font-family: 'Cinzel', serif;
+            font-size: 0.6rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 8px 18px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover {
+            border-color: var(--gold-dim);
+            color: var(--gold-dim);
+        }
+
+        /* ── Search ── */
+        .search-wrap {
+            position: relative;
+            max-width: 440px;
+            margin: 0 auto 50px;
+        }
+        .search-wrap::before {
+            content: '◎';
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+        .search-input {
+            width: 100%;
+            padding: 14px 20px 14px 46px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            font-style: italic;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            color: var(--text);
+            transition: border-color 0.3s;
+            letter-spacing: 0.03em;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--gold-dim);
+            box-shadow: 0 0 0 3px var(--gold-glow);
+        }
+        .search-input::placeholder { color: var(--text-muted); }
+
+        /* ── Add Review Panel ── */
+        .add-panel {
+            background: var(--surface);
+            border: 1px dashed var(--border);
+            border-radius: 2px;
+            padding: 32px 36px;
+            margin-bottom: 52px;
+            position: relative;
+            overflow: hidden;
+        }
+        .add-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 0%, rgba(232,200,112,0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .panel-header::before,
+        .panel-header::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .panel-label {
+            font-family: 'Cinzel', serif;
+            font-size: 0.6rem;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: var(--gold-dim);
+            white-space: nowrap;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .form-full { grid-column: 1 / -1; }
+
+        input[type=text], input[type=url], select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            color: var(--text);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            letter-spacing: 0.02em;
+            appearance: none;
+        }
+        input[type=text]:focus,
+        input[type=url]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--gold-dim);
+            box-shadow: 0 0 0 3px var(--gold-glow);
+        }
+        textarea { resize: vertical; line-height: 1.6; font-style: italic; }
+        select { cursor: pointer; }
+        ::placeholder { color: var(--text-muted); font-style: italic; }
+
+        .btn-submit {
+            font-family: 'Cinzel', serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #c4a44a 0%, #e8c870 50%, #c4a44a 100%);
+            background-size: 200% 200%;
+            color: #0a0702;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 2px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 6px;
+            transition: background-position 0.4s ease, transform 0.15s ease;
+        }
+        .btn-submit:hover {
+            background-position: right center;
+            transform: translateY(-1px);
+        }
+        .btn-submit:active { transform: translateY(0); }
+
+        /* ── Section header ── */
+        .section-head {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .section-head .label {
+            font-family: 'Cinzel', serif;
+            font-size: 0.6rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        .section-head .line {
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .section-head .count-badge {
+            font-family: 'Cinzel', serif;
+            font-size: 0.6rem;
+            color: var(--gold-dim);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2px 10px;
+        }
+
+        /* ── Review Cards ── */
+        .reviews-list {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .movie-card {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+            animation: revealCard 0.5s cubic-bezier(0.16,1,0.3,1) both;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .movie-card:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5), inset 0 0 40px rgba(232,200,112,0.03);
+        }
+
+        .movie-card::before {
+            content: '';
+            position: absolute;
+            left: 120px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--border);
+            z-index: 1;
+        }
+
+        @keyframes revealCard {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* film-strip sprockets on poster side */
+        .poster-side {
+            position: relative;
+            background: #07090d;
+            min-height: 200px;
+            overflow: hidden;
+        }
+        .poster-side::before,
+        .poster-side::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 14px;
+            background-image: repeating-linear-gradient(
+                90deg,
+                transparent 0,
+                transparent 6px,
+                rgba(255,255,255,0.06) 6px,
+                rgba(255,255,255,0.06) 16px,
+                transparent 16px,
+                transparent 22px
+            );
+            z-index: 2;
+        }
+        .poster-side::before { top: 0; }
+        .poster-side::after  { bottom: 0; }
+
+        .poster-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            filter: contrast(1.05) saturate(0.85);
+            transition: filter 0.4s ease;
+        }
+        .movie-card:hover .poster-image {
+            filter: contrast(1.05) saturate(1);
+        }
+        .poster-placeholder {
+            width: 100%;
+            height: 100%;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 1.8rem;
+            opacity: 0.3;
+        }
+
+        /* Review side */
+        .review-side {
+            padding: 26px 28px 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .review-rating-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .star-pips {
+            display: flex;
+            gap: 3px;
+        }
+        .pip {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+        }
+        .pip.lit {
+            background: var(--gold);
+            box-shadow: 0 0 5px rgba(232,200,112,0.6);
+        }
+        .rating-label {
+            font-family: 'Cinzel', serif;
+            font-size: 0.55rem;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .review-quote {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            font-style: italic;
+            font-weight: 300;
+            color: var(--text);
+            margin: 0 0 auto;
+            flex-grow: 1;
+        }
+        .review-quote::before { content: '\201C'; color: var(--gold-dim); margin-right: 2px; }
+        .review-quote::after  { content: '\201D'; color: var(--gold-dim); margin-left: 2px; }
+
+        .card-footer {
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+            margin-top: 18px;
+        }
+
+        .movie-title-text {
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--gold-dim);
+            margin: 0;
+            font-weight: 600;
+        }
+
+        /* Delete btn */
+        .delete-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 26px;
+            height: 26px;
+            background: none;
+            border: 1px solid transparent;
+            border-radius: 50%;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 5;
+            padding: 0;
+            line-height: 1;
+        }
+        .delete-btn:hover {
+            border-color: var(--red);
+            color: var(--red);
+            background: rgba(224,80,80,0.1);
+        }
+
+        /* ── LIGHT THEME ── */
+        [data-theme="light"] {
+            --bg: #f5f0e8;
+            --surface: #fdf8f0;
+            --surface-2: #ece8de;
+            --border: rgba(120,90,40,0.18);
+            --border-hover: rgba(120,90,40,0.45);
+            --gold: #8a6a18;
+            --gold-dim: #a07c28;
+            --gold-glow: rgba(120,90,40,0.12);
+            --text: #1a120a;
+            --text-muted: #7a6a50;
+            --red: #c0392b;
+            --curtain-l: #f5f0e8;
+            --curtain-r: #f5f0e8;
+        }
+        [data-theme="light"] .curtain-left  { background: linear-gradient(to right, #f5f0e8 0%, rgba(245,240,232,0.6) 60%, transparent 100%); }
+        [data-theme="light"] .curtain-right { background: linear-gradient(to left, #f5f0e8 0%, rgba(245,240,232,0.6) 60%, transparent 100%); }
+        [data-theme="light"] h1 {
+            background: linear-gradient(160deg, #5a3d10 0%, #a07c28 50%, #5a3d10 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        [data-theme="light"] .poster-side { background: #e8e0d0; }
+        [data-theme="light"] .add-panel { background: var(--surface); }
+        [data-theme="light"] input[type=text],
+        [data-theme="light"] input[type=url],
+        [data-theme="light"] select,
+        [data-theme="light"] textarea { background: var(--bg); }
+        [data-theme="light"] .search-input { background: var(--surface); }
+
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            display: none;
+        }
+        .empty-state .reel { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
+        .empty-state p {
+            font-family: 'Cinzel', serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+        }
+
+        /* ── Mobile ── */
+        @media (max-width: 600px) {
+            .stage { padding: 0 20px 60px; }
+            .movie-card { grid-template-columns: 90px 1fr; }
+            .movie-card::before { left: 90px; }
+            .add-panel { padding: 24px 20px; }
+            .form-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 2.8rem; }
+            .curtain-left, .curtain-right { width: 20px; }
+        }
+    </style>
 </head>
 <body>
 
-<!-- MASTHEAD -->
-<div class="masthead">
-  <div class="masthead-top">
-    <div class="masthead-utils">
-      <button class="util-btn" id="backup-btn">Export JSON</button>
-      <button class="util-btn" id="rss-btn">RSS Feed</button>
-    </div>
-    <button class="theme-btn" id="theme-btn" title="Toggle theme">◑</button>
-  </div>
+<div class="curtain-left"></div>
+<div class="curtain-right"></div>
 
-  <div class="masthead-center">
-    <p class="masthead-eyebrow">A personal cinema log</p>
-    <h1 class="site-title">Online<em>Theater</em></h1>
-    <div class="masthead-rule">
-      <span class="masthead-rule-text">Est. MMXXV</span>
-      <span class="views-badge" id="views-badge">Connecting…</span>
-      <span class="masthead-rule-text">Cinema critique</span>
+<div class="stage">
+
+    <header>
+        <p class="marquee-line">Now Screening</p>
+        <h1>Online Theatre</h1>
+        <div class="header-rule"><span>✦</span></div>
+        <div class="controls-row">
+            <button class="theme-toggle" id="themeBtn">Switch to Light Mode</button>
+        </div>
+    </header>
+
+    <!-- Search -->
+    <div class="search-wrap">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search your screenings…">
     </div>
-  </div>
+
+    <!-- Add Review Form -->
+    <div class="add-panel">
+        <div class="panel-header">
+            <span class="panel-label">Write a New Review</span>
+        </div>
+        <form id="reviewForm" class="form-grid" onsubmit="return false;">
+            <input type="text" id="inputTitle" placeholder="Film title…" required>
+            <select id="inputRating">
+                <option value="5">★★★★★ — Masterpiece</option>
+                <option value="4">★★★★☆ — Excellent</option>
+                <option value="3">★★★☆☆ — Good</option>
+                <option value="2">★★☆☆☆ — Fair</option>
+                <option value="1">★☆☆☆☆ — Poor</option>
+            </select>
+            <input type="url" id="inputImage" class="form-full" placeholder="Poster image URL (optional)…">
+            <textarea id="inputReview" class="form-full" rows="3" placeholder="Your critique…" required></textarea>
+            <button class="btn-submit form-full" id="submitBtn">Publish to the Archive</button>
+        </form>
+    </div>
+
+    <!-- Reviews list -->
+    <div class="section-head">
+        <span class="label">The Archive</span>
+        <div class="line"></div>
+        <span class="count-badge" id="countBadge">0</span>
+    </div>
+
+    <div class="empty-state" id="emptyState">
+        <div class="reel">🎞</div>
+        <p>No screenings yet — add your first review above</p>
+    </div>
+
+    <div class="reviews-list" id="moviesList"></div>
+
 </div>
-
-<!-- TOOLBAR -->
-<div class="toolbar">
-  <div class="search-wrap">
-    <span class="search-icon">⌕</span>
-    <input type="text" class="search-input" id="search-input" placeholder="Search title, director, genre…">
-  </div>
-  <select class="sort-select" id="sort-input">
-    <option value="newest">Newest</option>
-    <option value="oldest">Oldest</option>
-    <option value="rating-desc">Highest Rated</option>
-    <option value="rating-asc">Lowest Rated</option>
-  </select>
-  <button class="add-btn" id="add-btn">+ Add Review</button>
-</div>
-
-<!-- FORM PANEL -->
-<div class="form-panel" id="form-panel">
-  <form class="form-inner" id="review-form" novalidate>
-    <div>
-      <label class="form-label" for="f-title">Movie Title</label>
-      <input type="text" id="f-title" class="form-ctrl" required placeholder="e.g. Rashomon">
-    </div>
-    <div>
-      <label class="form-label" for="f-rating">Rating (0–10)</label>
-      <input type="number" id="f-rating" class="form-ctrl" step="0.1" min="0" max="10" required placeholder="8.5">
-    </div>
-    <div>
-      <label class="form-label" for="f-year">Release Year</label>
-      <input type="number" id="f-year" class="form-ctrl" placeholder="1950">
-    </div>
-    <div>
-      <label class="form-label" for="f-genre">Genre</label>
-      <input type="text" id="f-genre" class="form-ctrl" placeholder="e.g. Drama, Thriller">
-    </div>
-    <div>
-      <label class="form-label" for="f-director">Director</label>
-      <input type="text" id="f-director" class="form-ctrl" placeholder="e.g. Akira Kurosawa">
-    </div>
-    <div>
-      <label class="form-label" for="f-poster">Custom Poster</label>
-      <input type="file" id="f-poster" class="form-ctrl" accept="image/*">
-    </div>
-    <div class="full">
-      <label class="form-label" for="f-review">Review</label>
-      <textarea id="f-review" class="form-ctrl" required placeholder="Your critique…"></textarea>
-    </div>
-    <div class="full">
-      <label class="form-label" for="f-pass">Admin Password</label>
-      <input type="password" id="f-pass" class="form-ctrl" required placeholder="••••••••">
-    </div>
-    <button type="submit" class="publish-btn full" id="publish-btn">Publish Review</button>
-  </form>
-</div>
-
-<!-- FEED -->
-<main class="feed-wrap">
-  <div class="feed-header">
-    <span class="feed-count" id="feed-count">—</span>
-  </div>
-  <div id="reviews-feed"></div>
-</main>
-
-<footer class="site-footer">
-  OnlineTheater · Personal Cinema Log
-</footer>
 
 <script>
-  /* ── CONFIG ── */
-  const TMDB_KEY       = "YOUR_TMDB_API_KEY";
-  const SUPABASE_URL   = "YOUR_SUPABASE_PROJECT_URL";
-  const SUPABASE_KEY   = "YOUR_SUPABASE_ANON_KEY";
-  const ADMIN_PASSWORD = "Onlinetheatre@raj98";
+    const STORAGE_KEY = 'online_theatre_reviews_v2';
 
-  /* ── INIT ── */
-  let supabase = null;
-  if (SUPABASE_URL !== "YOUR_SUPABASE_PROJECT_URL") {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  }
+    // ── Storage helpers ─────────────────────────────────
+    function getAllReviews() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+        catch(e) { return []; }
+    }
+    function saveReview(reviewObj) {
+        const reviews = getAllReviews();
+        reviews.push(reviewObj);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(reviews));
+    }
+    function deleteReviewById(id) {
+        let reviews = getAllReviews().filter(r => r.id !== id);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(reviews));
+    }
 
-  let cache = [];
+    // ── Render ───────────────────────────────────────────
+    const list = document.getElementById('moviesList');
+    const emptyState = document.getElementById('emptyState');
+    const countBadge = document.getElementById('countBadge');
 
-  /* ── THEME ── */
-  const themeBtn = document.getElementById('theme-btn');
-  if (localStorage.getItem('ot-theme') === 'dark') document.body.classList.add('dark');
-  themeBtn.addEventListener('click', () => {
-    document.body.classList.toggle('dark');
-    localStorage.setItem('ot-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-  });
+    const RATING_LABELS = ['','Poor','Fair','Good','Excellent','Masterpiece'];
 
-  /* ── FORM TOGGLE ── */
-  const addBtn    = document.getElementById('add-btn');
-  const formPanel = document.getElementById('form-panel');
-  addBtn.addEventListener('click', () => {
-    const open = formPanel.classList.toggle('open');
-    addBtn.textContent = open ? '✕ Close' : '+ Add Review';
-    addBtn.classList.toggle('active', open);
-  });
+    function updateEmptyState() {
+        const cards = list.querySelectorAll('.movie-card');
+        emptyState.style.display = cards.length === 0 ? 'block' : 'none';
+        countBadge.textContent = getAllReviews().length;
+    }
 
-  /* ── TMDB METADATA ── */
-  async function fetchMeta(title) {
-    const fallback = { poster: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=300", year: "" };
-    if (!TMDB_KEY || TMDB_KEY.includes("YOUR_")) return fallback;
-    try {
-      const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}`);
-      const d = await r.json();
-      if (d.results && d.results[0]) {
-        const m = d.results[0];
-        return {
-          poster: m.poster_path ? `https://image.tmdb.org/t/p/w300${m.poster_path}` : fallback.poster,
-          year: m.release_date ? m.release_date.split('-')[0] : ""
+    function buildPips(rating) {
+        return Array.from({length:5}, (_,i) =>
+            `<span class="pip${i < rating ? ' lit' : ''}"></span>`
+        ).join('');
+    }
+
+    function renderCard(data, prepend = false) {
+        let mediaHTML = `<div class="poster-placeholder">◻</div>`;
+        if (data.image) {
+            mediaHTML = `<img class="poster-image" src="${data.image}"
+                alt="${data.title}"
+                onerror="this.parentElement.innerHTML='<div class=\\'poster-placeholder\\'>◻</div>'">`;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'movie-card';
+        card.dataset.id = data.id;
+        card.innerHTML = `
+            <button class="delete-btn" aria-label="Delete" title="Delete review">✕</button>
+            <div class="poster-side">${mediaHTML}</div>
+            <div class="review-side">
+                <div class="review-rating-row">
+                    <div class="star-pips">${buildPips(+data.rating)}</div>
+                    <span class="rating-label">${RATING_LABELS[+data.rating] || ''}</span>
+                </div>
+                <p class="review-quote">${data.text}</p>
+                <div class="card-footer">
+                    <h2 class="movie-title-text">${data.title}</h2>
+                </div>
+            </div>
+        `;
+
+        // delete handler
+        card.querySelector('.delete-btn').addEventListener('click', () => {
+            if (confirm('Remove this review from the archive?')) {
+                deleteReviewById(data.id);
+                card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'translateX(-10px)';
+                setTimeout(() => { card.remove(); updateEmptyState(); }, 300);
+            }
+        });
+
+        if (prepend) list.prepend(card);
+        else list.appendChild(card);
+
+        updateEmptyState();
+    }
+
+    function loadAll() {
+        getAllReviews().forEach(r => renderCard(r, false));
+        updateEmptyState();
+    }
+
+    // ── Form submit ──────────────────────────────────────
+    document.getElementById('submitBtn').addEventListener('click', () => {
+        const titleEl  = document.getElementById('inputTitle');
+        const reviewEl = document.getElementById('inputReview');
+        if (!titleEl.value.trim() || !reviewEl.value.trim()) {
+            titleEl.reportValidity(); reviewEl.reportValidity();
+            return;
+        }
+        const newReview = {
+            id: Date.now(),
+            title: titleEl.value.trim(),
+            rating: +document.getElementById('inputRating').value,
+            image: document.getElementById('inputImage').value.trim(),
+            text: reviewEl.value.trim()
         };
-      }
-    } catch(e) {}
-    return fallback;
-  }
-
-  /* ── IMAGE COMPRESS ── */
-  function compressImage(file) {
-    return new Promise(res => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = e => {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const w = 300;
-          canvas.width = w;
-          canvas.height = img.height * (w / img.width);
-          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-          res(canvas.toDataURL('image/jpeg', 0.75));
-        };
-      };
+        saveReview(newReview);
+        renderCard(newReview, true);
+        document.getElementById('reviewForm').reset();
     });
-  }
 
-  /* ── RENDER ── */
-  function renderFeed(items) {
-    const feed  = document.getElementById('reviews-feed');
-    const count = document.getElementById('feed-count');
+    // ── Search ───────────────────────────────────────────
+    document.getElementById('searchInput').addEventListener('input', e => {
+        const term = e.target.value.toLowerCase();
+        list.querySelectorAll('.movie-card').forEach(card => {
+            const title  = card.querySelector('.movie-title-text').textContent.toLowerCase();
+            const review = card.querySelector('.review-quote').textContent.toLowerCase();
+            card.style.display = (!term || title.includes(term) || review.includes(term)) ? '' : 'none';
+        });
+    });
 
-    count.textContent = `${items.length} review${items.length !== 1 ? 's' : ''}`;
+    // ── Theme ────────────────────────────────────────────
+    const themeBtn = document.getElementById('themeBtn');
+    const body = document.body;
 
-    if (!items.length) {
-      feed.innerHTML = `<div class="state-msg"><strong>No results</strong>No reviews match your search.</div>`;
-      return;
+    function applyTheme(t) {
+        if (t === 'light') {
+            body.setAttribute('data-theme', 'light');
+            themeBtn.textContent = 'Switch to Dark Mode';
+        } else {
+            body.removeAttribute('data-theme');
+            themeBtn.textContent = 'Switch to Light Mode';
+        }
     }
+    applyTheme(localStorage.getItem('theatre_theme') || 'dark');
 
-    feed.innerHTML = items.map(m => {
-      const year = m.year ? ` · ${m.year}` : '';
-      const dir  = m.director ? ` · Dir. ${m.director}` : '';
-      const specs = `${year}${dir}`.replace(/^·\s/, '');
-      const ratingNum = parseFloat(m.rating);
-      const badge = !isNaN(ratingNum) ? ratingNum.toFixed(1) : m.rating;
-      const title = esc(m.title);
-      const genre = m.genre ? `<span class="card-genre">${esc(m.genre)}</span>` : '';
-      return `
-      <article class="review-card">
-        <div class="poster-wrap">
-          <img class="poster-img" src="${esc(m.poster)}" loading="lazy" alt="${title} poster">
-          <div class="rating-badge" title="Rating">${esc(badge)}</div>
-        </div>
-        <div class="review-body">
-          <div class="card-meta">
-            <h2 class="card-title">${title}</h2>
-            ${genre}
-            ${specs ? `<span class="card-specs">${esc(specs)}</span>` : ''}
-          </div>
-          <p class="card-review">${esc(m.review)}</p>
-          <div class="card-actions">
-            <div class="card-divider"></div>
-            <button class="action-btn" onclick="shareToX(${JSON.stringify(m.title)})">Share</button>
-            <button class="action-btn delete" onclick="deleteReview(${m.id}, ${JSON.stringify(m.title)})">Delete</button>
-          </div>
-        </div>
-      </article>`;
-    }).join('');
-  }
+    themeBtn.addEventListener('click', () => {
+        const next = body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        applyTheme(next);
+        localStorage.setItem('theatre_theme', next);
+    });
 
-  function esc(str) {
-    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  /* ── FILTER + SORT ── */
-  function applyFilter() {
-    const q  = document.getElementById('search-input').value.toLowerCase();
-    const by = document.getElementById('sort-input').value;
-    let filtered = cache.filter(m =>
-      (m.title    && m.title.toLowerCase().includes(q)) ||
-      (m.review   && m.review.toLowerCase().includes(q)) ||
-      (m.director && m.director.toLowerCase().includes(q)) ||
-      (m.genre    && m.genre.toLowerCase().includes(q)) ||
-      (m.year     && String(m.year).includes(q))
-    );
-    if (by === 'newest')      filtered.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-    else if (by === 'oldest') filtered.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
-    else if (by === 'rating-desc') filtered.sort((a,b) => parseFloat(b.rating) - parseFloat(a.rating));
-    else if (by === 'rating-asc')  filtered.sort((a,b) => parseFloat(a.rating) - parseFloat(b.rating));
-    renderFeed(filtered);
-  }
-
-  document.getElementById('search-input').addEventListener('input', applyFilter);
-  document.getElementById('sort-input').addEventListener('change', applyFilter);
-
-  /* ── LOAD ── */
-  async function loadReviews() {
-    const feed = document.getElementById('reviews-feed');
-    if (!supabase) {
-      feed.innerHTML = `<div class="state-msg"><strong>Not configured</strong>Add your Supabase credentials in the script block.</div>`;
-      document.getElementById('feed-count').textContent = '—';
-      return;
-    }
-    try {
-      const { data, error } = await supabase.from('movie_reviews').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
-      cache = data || [];
-      applyFilter();
-    } catch(e) {
-      feed.innerHTML = `<div class="state-msg"><strong>Connection error</strong>${esc(e.message)}</div>`;
-    }
-  }
-
-  /* ── SUBMIT ── */
-  document.getElementById('review-form').addEventListener('submit', async e => {
-    e.preventDefault();
-    if (document.getElementById('f-pass').value !== ADMIN_PASSWORD) {
-      alert("Incorrect password.");
-      return;
-    }
-    if (!supabase) { alert("Supabase is not configured."); return; }
-
-    const btn = document.getElementById('publish-btn');
-    btn.textContent = "Publishing…";
-    btn.disabled = true;
-
-    const title    = document.getElementById('f-title').value.trim();
-    const rating   = document.getElementById('f-rating').value.trim();
-    const review   = document.getElementById('f-review').value.trim();
-    let   year     = document.getElementById('f-year').value.trim();
-    const director = document.getElementById('f-director').value.trim();
-    const genre    = document.getElementById('f-genre').value.trim();
-    const file     = document.getElementById('f-poster').files[0];
-
-    let poster = "";
-    if (file) {
-      poster = await compressImage(file);
-    } else {
-      const meta = await fetchMeta(title);
-      poster = meta.poster;
-      if (!year) year = meta.year;
-    }
-
-    try {
-      const { error } = await supabase.from('movie_reviews').insert([{ title, rating, review, poster, year, director, genre }]);
-      if (error) throw error;
-      document.getElementById('review-form').reset();
-      formPanel.classList.remove('open');
-      addBtn.textContent = '+ Add Review';
-      addBtn.classList.remove('active');
-      await loadReviews();
-    } catch(err) {
-      alert("Failed to publish: " + err.message);
-    } finally {
-      btn.textContent = "Publish Review";
-      btn.disabled = false;
-    }
-  });
-
-  /* ── DELETE ── */
-  async function deleteReview(id, title) {
-    if (prompt(`Enter password to delete "${title}":`) !== ADMIN_PASSWORD) {
-      alert("Incorrect password.");
-      return;
-    }
-    if (!supabase) return;
-    try {
-      const { error } = await supabase.from('movie_reviews').delete().eq('id', id);
-      if (error) throw error;
-      await loadReviews();
-    } catch(e) {
-      alert("Delete failed: " + e.message);
-    }
-  }
-
-  /* ── SHARE ── */
-  function shareToX(title) {
-    const text = encodeURIComponent(`My review of ${title} — OnlineTheater`);
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(location.href)}`, '_blank');
-  }
-
-  /* ── BACKUP ── */
-  document.getElementById('backup-btn').addEventListener('click', async e => {
-    if (prompt("Enter password to export:") !== ADMIN_PASSWORD) return;
-    if (!supabase) return;
-    try {
-      const { data, error } = await supabase.from('movie_reviews').select('*');
-      if (error) throw error;
-      const a = document.createElement('a');
-      a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-      a.download = "onlinetheater_backup.json";
-      a.click();
-    } catch(e) { alert("Export failed: " + e.message); }
-  });
-
-  /* ── RSS ── */
-  document.getElementById('rss-btn').addEventListener('click', () => {
-    const siteUrl = location.origin + location.pathname;
-    const items = cache.map(m => `
-  <item>
-    <title>${esc(m.title)} [★ ${m.rating}]</title>
-    <link>${siteUrl}</link>
-    <description>${esc(m.review)}</description>
-    <pubDate>${new Date(m.created_at).toUTCString()}</pubDate>
-  </item>`).join('');
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n  <channel>\n    <title>OnlineTheater Reviews</title>\n    <link>${siteUrl}</link>\n    <description>Cinema critique feed</description>${items}\n  </channel>\n</rss>`;
-    window.open(URL.createObjectURL(new Blob([xml], { type: 'application/xml' })), '_blank');
-  });
-
-  /* ── VIEWS (CountAPI) ── */
-  async function trackViews() {
-    const badge = document.getElementById('views-badge');
-    try {
-      const id = (location.hostname || 'localhost').replace(/\./g, '-');
-      const r  = await fetch(`https://api.countapi.xyz/hit/${id}/visits`);
-      const d  = await r.json();
-      badge.textContent = d.value ? `${d.value.toLocaleString()} views` : "Live";
-    } catch(e) {
-      badge.textContent = "Live";
-    }
-  }
-
-  /* ── BOOT ── */
-  loadReviews();
-  trackViews();
+    // ── Init ─────────────────────────────────────────────
+    loadAll();
 </script>
 </body>
 </html>
