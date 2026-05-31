@@ -1,821 +1,801 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OnlineTheater Core</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-
-
-    <style>
-        :root {
-            --bg-color: #fafafa;
-            --text-color: #1a1a1a;
-            --header-color: #111;
-            --search-bg: #fff;
-            --search-border: #e0e0e0;
-            --search-focus: #999;
-            --card-text: #444;
-            --card-title: #666;
-            --poster-bg: #eee;
-            --shadow: rgba(0,0,0,0.02);
-            --shadow-poster: rgba(0,0,0,0.08);
-            --accent-color: #e67e22;
-            --input-border: #dcdcdc;
-            --danger-color: #c0392b;
-            
-            /* Typography Variables */
-            --font-display: 'Cinzel', serif;
-            --font-body: 'Inter', sans-serif;
-        }
-
-
-        body.dark-theme {
-            --bg-color: #121212;
-            --text-color: #e0e0e0;
-            --header-color: #ffffff;
-            --search-bg: #1e1e1e;
-            --search-border: #333333;
-            --search-focus: #666666;
-            --card-text: #b0b0b0;
-            --card-title: #888;
-            --poster-bg: #2a2a2a;
-            --shadow: rgba(0,0,0,0.2);
-            --shadow-poster: rgba(0,0,0,0.5);
-            --input-border: #444;
-        }
-
-
-        body {
-            font-family: var(--font-body);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            -webkit-font-smoothing: antialiased;
-        }
-
-
-        .header-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 650px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            margin-top: 60px;
-            margin-bottom: 20px;
-            padding: 0 20px;
-            box-sizing: border-box;
-        }
-
-
-        header h1 {
-            font-family: var(--font-display);
-            font-size: 2.2rem;
-            font-weight: 800;
-            letter-spacing: 6px;
-            text-transform: uppercase;
-            color: var(--header-color);
-            margin: 0;
-        }
-
-
-        .header-utilities {
-            display: flex;
-            gap: 16px;
-            margin-top: 8px;
-            margin-bottom: 10px;
-        }
-
-
-        .util-link {
-            font-size: 0.7rem;
-            color: var(--card-title);
-            text-decoration: none;
-            opacity: 0.5;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 0;
-        }
-
-
-        .util-link:hover {
-            opacity: 1;
-            color: var(--accent-color);
-        }
-
-
-        .theme-toggle {
-            position: absolute;
-            right: 20px;
-            top: 5px;
-            background: none;
-            border: none;
-            font-size: 1.1rem;
-            cursor: pointer;
-            color: var(--card-title);
-            padding: 5px;
-            outline: none;
-        }
-
-
-        .panel-container {
-            width: 100%;
-            max-width: 650px;
-            padding: 0 20px;
-            box-sizing: border-box;
-            margin-bottom: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-
-        .admin-toggle-btn {
-            background: none;
-            border: 1px solid var(--search-border);
-            color: var(--card-title);
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-            transition: all 0.2s ease;
-            font-family: var(--font-body);
-            font-weight: 500;
-        }
-
-
-        .admin-toggle-btn:hover {
-            border-color: var(--search-focus);
-            color: var(--text-color);
-        }
-
-
-        .review-form-card {
-            background-color: var(--search-bg);
-            border: 1px solid var(--search-border);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 12px var(--shadow);
-            display: none;
-            flex-direction: column;
-            gap: 16px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-
-        .form-grid-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-
-        .form-group label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--card-title);
-        }
-
-
-        .form-control {
-            font-family: var(--font-body);
-            padding: 10px 14px;
-            border: 1px solid var(--input-border);
-            border-radius: 6px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-size: 0.95rem;
-            outline: none;
-        }
-
-
-        .form-control:focus {
-            border-color: var(--search-focus);
-        }
-
-
-        .submit-btn {
-            font-family: var(--font-body);
-            background-color: var(--text-color);
-            color: var(--bg-color);
-            border: none;
-            padding: 12px;
-            border-radius: 6px;
-            font-weight: 700;
-            cursor: pointer;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            transition: opacity 0.2s;
-        }
-
-
-        .submit-btn:hover { opacity: 0.9; }
-
-
-        .search-container {
-            width: 100%;
-            max-width: 650px;
-            margin-bottom: 50px;
-            padding: 0 20px;
-            box-sizing: border-box;
-            display: flex;
-            gap: 12px;
-        }
-        .search-bar {
-            font-family: var(--font-body);
-            flex-grow: 1;
-            padding: 14px 20px;
-            font-size: 1rem;
-            border: 1px solid var(--search-border);
-            border-radius: 30px;
-            background-color: var(--search-bg);
-            color: var(--text-color);
-            outline: none;
-            box-shadow: 0 2px 5px var(--shadow);
-        }
-        .sort-select {
-            font-family: var(--font-body);
-            padding: 0 20px;
-            font-size: 0.8rem;
-            border: 1px solid var(--search-border);
-            border-radius: 30px;
-            background-color: var(--search-bg);
-            color: var(--card-title);
-            outline: none;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 2px 5px var(--shadow);
-            font-weight: 600;
-        }
-
-
-        .analytics-pill {
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--card-title);
-            opacity: 0.4;
-            margin-bottom: 40px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-
-        .feed-container {
-            width: 100%;
-            max-width: 650px;
-            padding: 0 20px;
-            box-sizing: border-box;
-        }
-
-
-        .review-card {
-            display: flex;
-            align-items: flex-start;
-            gap: 30px;
-            margin-bottom: 60px;
-        }
-
-
-        .movie-poster {
-            width: 130px;
-            height: 195px;
-            object-fit: cover;
-            border-radius: 6px;
-            background-color: var(--poster-bg);
-            box-shadow: 0 4px 12px var(--shadow-poster);
-            flex-shrink: 0;
-        }
-
-
-        .review-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            padding-top: 5px;
-            width: 100%;
-        }
-
-
-        .review-text {
-            font-size: 1rem;
-            line-height: 1.65;
-            color: var(--card-text);
-            margin: 0 0 12px 0;
-            font-weight: 400;
-        }
-
-
-        .movie-meta-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            width: 100%;
-        }
-
-
-        .movie-title {
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--card-title);
-            margin: 0;
-        }
-
-
-        .movie-specs {
-            font-size: 0.8rem;
-            color: var(--card-title);
-            opacity: 0.75;
-            font-weight: 400;
-        }
-
-
-        .movie-rating {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--accent-color);
-        }
-
-
-        .share-action-btn {
-            background: none;
-            border: none;
-            color: var(--card-title);
-            cursor: pointer;
-            font-size: 0.8rem;
-            padding: 2px 6px;
-            margin-left: 8px;
-            opacity: 0.4;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.2s;
-            font-family: var(--font-body);
-        }
-        .share-action-btn:hover {
-            color: var(--accent-color);
-            opacity: 1;
-        }
-        .delete-action-btn {
-            background: none;
-            border: none;
-            color: var(--card-title);
-            cursor: pointer;
-            font-size: 0.9rem;
-            padding: 2px 6px;
-            margin-left: auto;
-            opacity: 0.4;
-            transition: all 0.2s;
-        }
-        .delete-action-btn:hover { color: var(--danger-color); opacity: 1; }
-
-
-        @media (max-width: 500px) {
-            .review-card { flex-direction: column; gap: 15px; margin-bottom: 45px; }
-            .movie-poster { width: 100%; height: auto; max-height: 350px; }
-            .header-wrapper { margin-top: 40px; }
-            .form-grid-row { grid-template-columns: 1fr; gap: 16px; }
-            .search-container { flex-direction: column; gap: 12px; }
-            .sort-select { padding: 12px 20px; }
-            .delete-action-btn { margin-left: 0; margin-top: 5px; width: 100%; text-align: left; padding: 0; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OnlineTheater</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f4ef;
+    --surface: #ffffff;
+    --surface-alt: #f0ece4;
+    --border: rgba(0,0,0,0.09);
+    --border-strong: rgba(0,0,0,0.18);
+    --text: #1a1714;
+    --text-muted: #7a746c;
+    --text-faint: #b0a99e;
+    --accent: #c1440e;
+    --accent-light: #f5e9e3;
+    --accent-dark: #8e3009;
+    --gold: #c9902a;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+  }
+  body.dark {
+    --bg: #111009;
+    --surface: #1c1a16;
+    --surface-alt: #242119;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.16);
+    --text: #ede9e1;
+    --text-muted: #8a8278;
+    --text-faint: #4a4540;
+    --accent: #e05a25;
+    --accent-light: #2a1a12;
+    --accent-dark: #f07a50;
+    --gold: #d4a03a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* ── MASTHEAD ── */
+  .masthead {
+    border-bottom: 1px solid var(--border);
+    padding: 0 clamp(1rem, 4vw, 3rem);
+    position: relative;
+  }
+  .masthead-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0 0.75rem;
+  }
+  .masthead-utils {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  .util-btn {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s;
+  }
+  .util-btn:hover { color: var(--accent); }
+  .theme-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-alt);
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.2s, background 0.2s;
+    color: var(--text-muted);
+  }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .masthead-center {
+    text-align: center;
+    padding: 2rem 0 1.75rem;
+    position: relative;
+  }
+  .masthead-eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 0.6rem;
+  }
+  .site-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.6rem, 7vw, 4.5rem);
+    font-weight: 900;
+    line-height: 0.95;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .site-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .masthead-rule {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+  .masthead-rule::before, .masthead-rule::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .masthead-rule-text {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+  .views-badge {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: 0.25rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 2rem;
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    max-width: 900px;
+    margin: 2rem auto 0;
+    padding: 0 clamp(1rem, 4vw, 2rem);
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .search-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-faint);
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+  .search-input {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 0.65rem 1rem 0.65rem 2.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input::placeholder { color: var(--text-faint); }
+  .search-input:focus { border-color: var(--border-strong); }
+  .sort-select {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.65rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-muted);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .sort-select:focus { border-color: var(--border-strong); }
+  .add-btn {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 0.65rem 1.25rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .add-btn:hover { background: var(--accent-dark); }
+  .add-btn.active { background: var(--text); }
+  .add-btn.active:hover { background: var(--text-muted); }
+
+  /* ── ADD FORM ── */
+  .form-panel {
+    max-width: 900px;
+    margin: 1.5rem auto 0;
+    padding: 0 clamp(1rem, 4vw, 2rem);
+    display: none;
+  }
+  .form-panel.open { display: block; }
+  .form-inner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 0 0 6px 6px;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  .form-inner .full { grid-column: 1 / -1; }
+  .form-label {
+    display: block;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+  }
+  .form-ctrl {
+    font-family: var(--font-body);
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.9rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-ctrl:focus { border-color: var(--border-strong); }
+  textarea.form-ctrl { resize: vertical; min-height: 100px; line-height: 1.6; }
+  .form-ctrl::placeholder { color: var(--text-faint); }
+  .publish-btn {
+    font-family: var(--font-body);
+    grid-column: 1 / -1;
+    padding: 0.8rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 500;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .publish-btn:hover { opacity: 0.8; }
+  .publish-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── FEED ── */
+  .feed-wrap {
+    max-width: 900px;
+    margin: 3rem auto 5rem;
+    padding: 0 clamp(1rem, 4vw, 2rem);
+  }
+  .feed-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .feed-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .feed-count {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+
+  /* ── REVIEW CARD ── */
+  .review-card {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 2rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+    transition: border-color 0.2s;
+    position: relative;
+  }
+  .review-card:last-child { border-bottom: 1px solid var(--border); }
+  .poster-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .poster-img {
+    width: 140px;
+    height: 210px;
+    object-fit: cover;
+    border-radius: 3px;
+    display: block;
+    background: var(--surface-alt);
+  }
+  .rating-badge {
+    position: absolute;
+    bottom: -8px;
+    right: -8px;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--bg);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .review-body { padding-top: 0.25rem; }
+  .card-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+    flex-wrap: wrap;
+  }
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.15;
+  }
+  .card-specs {
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+  }
+  .card-genre {
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 0.2rem 0.55rem;
+    border-radius: 3px;
+  }
+  .card-review {
+    font-size: 0.925rem;
+    line-height: 1.75;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+  }
+  .card-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .card-divider { flex: 1; height: 1px; background: var(--border); }
+  .action-btn {
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s;
+  }
+  .action-btn:hover { color: var(--accent); }
+  .action-btn.delete:hover { color: #c0392b; }
+
+  /* ── EMPTY / ERROR STATES ── */
+  .state-msg {
+    text-align: center;
+    padding: 4rem 0;
+    color: var(--text-faint);
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+  }
+  .state-msg strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  /* ── FOOTER ── */
+  .site-footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem clamp(1rem, 4vw, 3rem);
+    text-align: center;
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  @media (max-width: 560px) {
+    .review-card { grid-template-columns: 1fr; gap: 1rem; }
+    .poster-img { width: 100%; height: 200px; }
+    .poster-wrap { width: 100%; }
+    .rating-badge { right: 8px; }
+    .form-inner { grid-template-columns: 1fr; }
+    .form-inner .full { grid-column: 1; }
+    .masthead-utils { gap: 0.75rem; }
+  }
+</style>
 </head>
 <body>
 
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="masthead-top">
+    <div class="masthead-utils">
+      <button class="util-btn" id="backup-btn">Export JSON</button>
+      <button class="util-btn" id="rss-btn">RSS Feed</button>
+    </div>
+    <button class="theme-btn" id="theme-btn" title="Toggle theme">◑</button>
+  </div>
 
-    <div class="header-wrapper">
-        <header>
-            <h1>OnlineTheater</h1>
-        </header>
-        <div class="header-utilities">
-            <button class="util-link" id="backup-db-link">Backup JSON</button>
-            <span style="color: var(--card-title); opacity:0.3;">•</span>
-            <button class="util-link" id="rss-gen-link">RSS Feed</button>
+  <div class="masthead-center">
+    <p class="masthead-eyebrow">A personal cinema log</p>
+    <h1 class="site-title">Online<em>Theater</em></h1>
+    <div class="masthead-rule">
+      <span class="masthead-rule-text">Est. MMXXV</span>
+      <span class="views-badge" id="views-badge">Connecting…</span>
+      <span class="masthead-rule-text">Cinema critique</span>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" class="search-input" id="search-input" placeholder="Search title, director, genre…">
+  </div>
+  <select class="sort-select" id="sort-input">
+    <option value="newest">Newest</option>
+    <option value="oldest">Oldest</option>
+    <option value="rating-desc">Highest Rated</option>
+    <option value="rating-asc">Lowest Rated</option>
+  </select>
+  <button class="add-btn" id="add-btn">+ Add Review</button>
+</div>
+
+<!-- FORM PANEL -->
+<div class="form-panel" id="form-panel">
+  <form class="form-inner" id="review-form" novalidate>
+    <div>
+      <label class="form-label" for="f-title">Movie Title</label>
+      <input type="text" id="f-title" class="form-ctrl" required placeholder="e.g. Rashomon">
+    </div>
+    <div>
+      <label class="form-label" for="f-rating">Rating (0–10)</label>
+      <input type="number" id="f-rating" class="form-ctrl" step="0.1" min="0" max="10" required placeholder="8.5">
+    </div>
+    <div>
+      <label class="form-label" for="f-year">Release Year</label>
+      <input type="number" id="f-year" class="form-ctrl" placeholder="1950">
+    </div>
+    <div>
+      <label class="form-label" for="f-genre">Genre</label>
+      <input type="text" id="f-genre" class="form-ctrl" placeholder="e.g. Drama, Thriller">
+    </div>
+    <div>
+      <label class="form-label" for="f-director">Director</label>
+      <input type="text" id="f-director" class="form-ctrl" placeholder="e.g. Akira Kurosawa">
+    </div>
+    <div>
+      <label class="form-label" for="f-poster">Custom Poster</label>
+      <input type="file" id="f-poster" class="form-ctrl" accept="image/*">
+    </div>
+    <div class="full">
+      <label class="form-label" for="f-review">Review</label>
+      <textarea id="f-review" class="form-ctrl" required placeholder="Your critique…"></textarea>
+    </div>
+    <div class="full">
+      <label class="form-label" for="f-pass">Admin Password</label>
+      <input type="password" id="f-pass" class="form-ctrl" required placeholder="••••••••">
+    </div>
+    <button type="submit" class="publish-btn full" id="publish-btn">Publish Review</button>
+  </form>
+</div>
+
+<!-- FEED -->
+<main class="feed-wrap">
+  <div class="feed-header">
+    <span class="feed-count" id="feed-count">—</span>
+  </div>
+  <div id="reviews-feed"></div>
+</main>
+
+<footer class="site-footer">
+  OnlineTheater · Personal Cinema Log
+</footer>
+
+<script>
+  /* ── CONFIG ── */
+  const TMDB_KEY       = "YOUR_TMDB_API_KEY";
+  const SUPABASE_URL   = "YOUR_SUPABASE_PROJECT_URL";
+  const SUPABASE_KEY   = "YOUR_SUPABASE_ANON_KEY";
+  const ADMIN_PASSWORD = "Onlinetheatre@raj98";
+
+  /* ── INIT ── */
+  let supabase = null;
+  if (SUPABASE_URL !== "YOUR_SUPABASE_PROJECT_URL") {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+
+  let cache = [];
+
+  /* ── THEME ── */
+  const themeBtn = document.getElementById('theme-btn');
+  if (localStorage.getItem('ot-theme') === 'dark') document.body.classList.add('dark');
+  themeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    localStorage.setItem('ot-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+  });
+
+  /* ── FORM TOGGLE ── */
+  const addBtn    = document.getElementById('add-btn');
+  const formPanel = document.getElementById('form-panel');
+  addBtn.addEventListener('click', () => {
+    const open = formPanel.classList.toggle('open');
+    addBtn.textContent = open ? '✕ Close' : '+ Add Review';
+    addBtn.classList.toggle('active', open);
+  });
+
+  /* ── TMDB METADATA ── */
+  async function fetchMeta(title) {
+    const fallback = { poster: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=300", year: "" };
+    if (!TMDB_KEY || TMDB_KEY.includes("YOUR_")) return fallback;
+    try {
+      const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}`);
+      const d = await r.json();
+      if (d.results && d.results[0]) {
+        const m = d.results[0];
+        return {
+          poster: m.poster_path ? `https://image.tmdb.org/t/p/w300${m.poster_path}` : fallback.poster,
+          year: m.release_date ? m.release_date.split('-')[0] : ""
+        };
+      }
+    } catch(e) {}
+    return fallback;
+  }
+
+  /* ── IMAGE COMPRESS ── */
+  function compressImage(file) {
+    return new Promise(res => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = e => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const w = 300;
+          canvas.width = w;
+          canvas.height = img.height * (w / img.width);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          res(canvas.toDataURL('image/jpeg', 0.75));
+        };
+      };
+    });
+  }
+
+  /* ── RENDER ── */
+  function renderFeed(items) {
+    const feed  = document.getElementById('reviews-feed');
+    const count = document.getElementById('feed-count');
+
+    count.textContent = `${items.length} review${items.length !== 1 ? 's' : ''}`;
+
+    if (!items.length) {
+      feed.innerHTML = `<div class="state-msg"><strong>No results</strong>No reviews match your search.</div>`;
+      return;
+    }
+
+    feed.innerHTML = items.map(m => {
+      const year = m.year ? ` · ${m.year}` : '';
+      const dir  = m.director ? ` · Dir. ${m.director}` : '';
+      const specs = `${year}${dir}`.replace(/^·\s/, '');
+      const ratingNum = parseFloat(m.rating);
+      const badge = !isNaN(ratingNum) ? ratingNum.toFixed(1) : m.rating;
+      const title = esc(m.title);
+      const genre = m.genre ? `<span class="card-genre">${esc(m.genre)}</span>` : '';
+      return `
+      <article class="review-card">
+        <div class="poster-wrap">
+          <img class="poster-img" src="${esc(m.poster)}" loading="lazy" alt="${title} poster">
+          <div class="rating-badge" title="Rating">${esc(badge)}</div>
         </div>
-        <button class="theme-toggle" id="theme-btn">🌓</button>
-    </div>
-
-
-    <div class="panel-container">
-        <button class="admin-toggle-btn" id="admin-toggle">+ Add Review</button>
-
-
-        <form class="review-form-card" id="review-form">
-            <div class="form-grid-row">
-                <div class="form-group">
-                    <label for="form-title">Movie Title</label>
-                    <input type="text" id="form-title" class="form-control" required placeholder="e.g., Inception">
-                </div>
-                <div class="form-group">
-                    <label for="form-rating">Rating Score</label>
-                    <input type="number" id="form-rating" class="form-control" step="0.1" min="0" max="10" required placeholder="0.0 - 10.0">
-                </div>
-            </div>
-
-
-            <div class="form-grid-row">
-                <div class="form-group">
-                    <label for="form-year">Release Year (Optional)</label>
-                    <input type="number" id="form-year" class="form-control" placeholder="e.g., 2010">
-                </div>
-                <div class="form-group">
-                    <label for="form-genre">Genre (Optional)</label>
-                    <input type="text" id="form-genre" class="form-control" placeholder="e.g., Sci-Fi, Thriller">
-                </div>
-            </div>
-
-
-            <div class="form-grid-row">
-                <div class="form-group">
-                    <label for="form-director">Director (Optional)</label>
-                    <input type="text" id="form-director" class="form-control" placeholder="e.g., Christopher Nolan">
-                </div>
-                <div class="form-group">
-                    <label for="form-poster-file">Custom Poster Image File (Optional)</label>
-                    <input type="file" id="form-poster-file" class="form-control" accept="image/*">
-                </div>
-            </div>
-
-
-            <div class="form-group">
-                <label for="form-review">Your Description & Review</label>
-                <textarea id="form-review" class="form-control" rows="4" required placeholder="Write your cinema critique..."></textarea>
-            </div>
-
-
-            <div class="form-group">
-                <label for="form-pass">Admin Security Password</label>
-                <input type="password" id="form-pass" class="form-control" required>
-            </div>
-
-
-            <button type="submit" class="submit-btn" id="submit-btn">Publish Review</button>
-        </form>
-    </div>
-
-
-    <div class="search-container">
-        <input type="text" id="search-input" class="search-bar" placeholder="Search title, review context, directors...">
-        <select id="sort-input" class="sort-select">
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="rating-desc">Highest Rated</option>
-            <option value="rating-asc">Lowest Rated</option>
-        </select>
-    </div>
-
-
-    <div class="analytics-pill">
-        <span id="hit-counter-view">Connecting to cloud systems...</span>
-    </div>
-
-
-    <div class="feed-container" id="reviews-feed">
+        <div class="review-body">
+          <div class="card-meta">
+            <h2 class="card-title">${title}</h2>
+            ${genre}
+            ${specs ? `<span class="card-specs">${esc(specs)}</span>` : ''}
+          </div>
+          <p class="card-review">${esc(m.review)}</p>
+          <div class="card-actions">
+            <div class="card-divider"></div>
+            <button class="action-btn" onclick="shareToX(${JSON.stringify(m.title)})">Share</button>
+            <button class="action-btn delete" onclick="deleteReview(${m.id}, ${JSON.stringify(m.title)})">Delete</button>
+          </div>
         </div>
+      </article>`;
+    }).join('');
+  }
 
+  function esc(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 
-    <script>
-        // --- Configurations ---
-        const TMDB_API_KEY = "YOUR_TMDB_API_KEY"; 
-        const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL"; 
-        const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY"; 
-        const ADMIN_PASSWORD = "Onlinetheatre@raj98";
-        
-        let localReviewsCache = [];
+  /* ── FILTER + SORT ── */
+  function applyFilter() {
+    const q  = document.getElementById('search-input').value.toLowerCase();
+    const by = document.getElementById('sort-input').value;
+    let filtered = cache.filter(m =>
+      (m.title    && m.title.toLowerCase().includes(q)) ||
+      (m.review   && m.review.toLowerCase().includes(q)) ||
+      (m.director && m.director.toLowerCase().includes(q)) ||
+      (m.genre    && m.genre.toLowerCase().includes(q)) ||
+      (m.year     && String(m.year).includes(q))
+    );
+    if (by === 'newest')      filtered.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    else if (by === 'oldest') filtered.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+    else if (by === 'rating-desc') filtered.sort((a,b) => parseFloat(b.rating) - parseFloat(a.rating));
+    else if (by === 'rating-asc')  filtered.sort((a,b) => parseFloat(a.rating) - parseFloat(b.rating));
+    renderFeed(filtered);
+  }
 
+  document.getElementById('search-input').addEventListener('input', applyFilter);
+  document.getElementById('sort-input').addEventListener('change', applyFilter);
 
-        // Initialize Supabase client safely
-        let supabase = null;
-        if (SUPABASE_URL !== "YOUR_SUPABASE_PROJECT_URL") {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        }
+  /* ── LOAD ── */
+  async function loadReviews() {
+    const feed = document.getElementById('reviews-feed');
+    if (!supabase) {
+      feed.innerHTML = `<div class="state-msg"><strong>Not configured</strong>Add your Supabase credentials in the script block.</div>`;
+      document.getElementById('feed-count').textContent = '—';
+      return;
+    }
+    try {
+      const { data, error } = await supabase.from('movie_reviews').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      cache = data || [];
+      applyFilter();
+    } catch(e) {
+      feed.innerHTML = `<div class="state-msg"><strong>Connection error</strong>${esc(e.message)}</div>`;
+    }
+  }
 
+  /* ── SUBMIT ── */
+  document.getElementById('review-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (document.getElementById('f-pass').value !== ADMIN_PASSWORD) {
+      alert("Incorrect password.");
+      return;
+    }
+    if (!supabase) { alert("Supabase is not configured."); return; }
 
-        // DOM Elements
-        const reviewsFeed = document.getElementById('reviews-feed');
-        const searchInput = document.getElementById('search-input');
-        const sortInput = document.getElementById('sort-input');
-        const themeBtn = document.getElementById('theme-btn');
-        const adminToggle = document.getElementById('admin-toggle');
-        const reviewForm = document.getElementById('review-form');
+    const btn = document.getElementById('publish-btn');
+    btn.textContent = "Publishing…";
+    btn.disabled = true;
 
+    const title    = document.getElementById('f-title').value.trim();
+    const rating   = document.getElementById('f-rating').value.trim();
+    const review   = document.getElementById('f-review').value.trim();
+    let   year     = document.getElementById('f-year').value.trim();
+    const director = document.getElementById('f-director').value.trim();
+    const genre    = document.getElementById('f-genre').value.trim();
+    const file     = document.getElementById('f-poster').files[0];
 
-        // Form View Toggle Handler
-        adminToggle.addEventListener('click', () => {
-            const isHidden = window.getComputedStyle(reviewForm).display === 'none';
-            reviewForm.style.display = isHidden ? 'flex' : 'none';
-            adminToggle.textContent = isHidden ? '✕ Close Form' : '+ Add Review';
-        });
+    let poster = "";
+    if (file) {
+      poster = await compressImage(file);
+    } else {
+      const meta = await fetchMeta(title);
+      poster = meta.poster;
+      if (!year) year = meta.year;
+    }
 
+    try {
+      const { error } = await supabase.from('movie_reviews').insert([{ title, rating, review, poster, year, director, genre }]);
+      if (error) throw error;
+      document.getElementById('review-form').reset();
+      formPanel.classList.remove('open');
+      addBtn.textContent = '+ Add Review';
+      addBtn.classList.remove('active');
+      await loadReviews();
+    } catch(err) {
+      alert("Failed to publish: " + err.message);
+    } finally {
+      btn.textContent = "Publish Review";
+      btn.disabled = false;
+    }
+  });
 
-        // Fetch Metadata Fallback Logic via TMDB
-        async function fetchMovieMetadata(movieTitle) {
-            const result = { poster: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=300", year: "" };
-            if (!TMDB_API_KEY || TMDB_API_KEY.includes("YOUR_")) return result;
-            try {
-                const url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(movieTitle)}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                if (data.results && data.results.length > 0) {
-                    const match = data.results[0];
-                    if (match.poster_path) result.poster = `https://image.tmdb.org/t/p/w300${match.poster_path}`;
-                    if (match.release_date) result.year = match.release_date.split('-')[0];
-                }
-            } catch (err) { 
-                console.error("Metadata API sync exception:", err); 
-            }
-            return result;
-        }
+  /* ── DELETE ── */
+  async function deleteReview(id, title) {
+    if (prompt(`Enter password to delete "${title}":`) !== ADMIN_PASSWORD) {
+      alert("Incorrect password.");
+      return;
+    }
+    if (!supabase) return;
+    try {
+      const { error } = await supabase.from('movie_reviews').delete().eq('id', id);
+      if (error) throw error;
+      await loadReviews();
+    } catch(e) {
+      alert("Delete failed: " + e.message);
+    }
+  }
 
+  /* ── SHARE ── */
+  function shareToX(title) {
+    const text = encodeURIComponent(`My review of ${title} — OnlineTheater`);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(location.href)}`, '_blank');
+  }
 
-        // Processing and Base64 Compression Canvas Logic
-        function processAndCompressImageFile(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const maxWidth = 300;
-                        const scaleFactor = maxWidth / img.width;
-                        canvas.width = maxWidth;
-                        canvas.height = img.height * scaleFactor;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.75));
-                    };
-                };
-            });
-        }
+  /* ── BACKUP ── */
+  document.getElementById('backup-btn').addEventListener('click', async e => {
+    if (prompt("Enter password to export:") !== ADMIN_PASSWORD) return;
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase.from('movie_reviews').select('*');
+      if (error) throw error;
+      const a = document.createElement('a');
+      a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+      a.download = "onlinetheater_backup.json";
+      a.click();
+    } catch(e) { alert("Export failed: " + e.message); }
+  });
 
+  /* ── RSS ── */
+  document.getElementById('rss-btn').addEventListener('click', () => {
+    const siteUrl = location.origin + location.pathname;
+    const items = cache.map(m => `
+  <item>
+    <title>${esc(m.title)} [★ ${m.rating}]</title>
+    <link>${siteUrl}</link>
+    <description>${esc(m.review)}</description>
+    <pubDate>${new Date(m.created_at).toUTCString()}</pubDate>
+  </item>`).join('');
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n  <channel>\n    <title>OnlineTheater Reviews</title>\n    <link>${siteUrl}</link>\n    <description>Cinema critique feed</description>${items}\n  </channel>\n</rss>`;
+    window.open(URL.createObjectURL(new Blob([xml], { type: 'application/xml' })), '_blank');
+  });
 
-        // Render Cards View Functionality
-        function renderFeed(movies) {
-            if (movies.length === 0) {
-                reviewsFeed.innerHTML = `<p style="text-align: center; color: var(--card-title); font-size: 0.95rem; margin-top: 20px;">No matching reviews found.</p>`;
-                return;
-            }
-            reviewsFeed.innerHTML = movies.map(movie => {
-                const yearText = movie.year ? `(${movie.year})` : '';
-                const directorText = movie.director ? ` • Dir. ${movie.director}` : '';
-                const genreText = movie.genre ? ` • ${movie.genre}` : '';
-                return `
-                <div class="review-card"> 
-                    <img class="movie-poster" src="${movie.poster}" loading="lazy" alt="${movie.title} Poster Visual"> 
-                    <div class="review-content"> 
-                        <p class="review-text">${movie.review}</p> 
-                        <div class="movie-meta-row"> 
-                            <h2 class="movie-title">${movie.title} <span class="movie-specs">${yearText}${directorText}${genreText}</span></h2> 
-                            <span class="movie-rating">★ ${movie.rating}</span> 
-                            <button class="share-action-btn" onclick="shareToTwitter('${movie.title.replace(/'/g, "\\'")}')">Share</button> 
-                            <button class="delete-action-btn" onclick="deleteReviewRow(${movie.id}, '${movie.title.replace(/'/g, "\\'")}')" title="Delete Review">✕</button> 
-                        </div> 
-                    </div> 
-                </div>`;
-            }).join('');
-        }
+  /* ── VIEWS (CountAPI) ── */
+  async function trackViews() {
+    const badge = document.getElementById('views-badge');
+    try {
+      const id = (location.hostname || 'localhost').replace(/\./g, '-');
+      const r  = await fetch(`https://api.countapi.xyz/hit/${id}/visits`);
+      const d  = await r.json();
+      badge.textContent = d.value ? `${d.value.toLocaleString()} views` : "Live";
+    } catch(e) {
+      badge.textContent = "Live";
+    }
+  }
 
-
-        // Load DB Stream
-        async function loadDatabaseReviews() {
-            if (!supabase) {
-                reviewsFeed.innerHTML = `<p style="text-align: center; color: var(--card-title);">Please configure your Supabase Credentials in the script setup.</p>`;
-                return;
-            }
-            try {
-                let { data: movie_reviews, error } = await supabase
-                    .from('movie_reviews')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                if (error) throw error;
-                localReviewsCache = movie_reviews || [];
-                applyFiltersAndSorting();
-            } catch (err) { 
-                reviewsFeed.innerHTML = `<p style="text-align: center; color: red;">Database Connection Error: ${err.message}</p>`; 
-            }
-        }
-
-
-        // Hit Counting Script Logic using CountAPI
-        async function runCounterTracker() {
-            const cacheKey = 'theater_visit_tracked';
-            const pageId = window.location.hostname || 'localhost';
-            // Clean up naming for endpoints
-            const sanitizedId = pageId.replace(/\./g, '-');
-            const countUrl = `https://api.countapi.xyz/hit/${sanitizedId}/visits`;
-            const displayNode = document.getElementById('hit-counter-view');
-            try {
-                const response = await fetch(countUrl);
-                const countData = await response.json();
-                if (countData.value) displayNode.textContent = `Views: ${countData.value}`;
-                else displayNode.textContent = "Views: Live";
-            } catch (err) {
-                displayNode.textContent = "Views: Live";
-            }
-        }
-
-
-        // Insertion Form Submission Events
-        reviewForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (document.getElementById('form-pass').value !== ADMIN_PASSWORD) {
-                alert("Security Error: Invalid Administrative Password.");
-                return;
-            }
-            if (!supabase) {
-                alert("Database engine is unconfigured.");
-                return;
-            }
-
-
-            const submitBtn = document.getElementById('submit-btn');
-            const title = document.getElementById('form-title').value.trim();
-            const rating = document.getElementById('form-rating').value.trim();
-            const review = document.getElementById('form-review').value.trim();
-            let year = document.getElementById('form-year').value.trim();
-            const director = document.getElementById('form-director').value.trim();
-            const genre = document.getElementById('form-genre').value.trim();
-            const fileInput = document.getElementById('form-poster-file');
-
-
-            submitBtn.textContent = "Publishing to Network...";
-            submitBtn.disabled = true;
-
-
-            let poster = "";
-            if (fileInput.files && fileInput.files[0]) {
-                poster = await processAndCompressImageFile(fileInput.files[0]);
-            } else {
-                const metadata = await fetchMovieMetadata(title);
-                poster = metadata.poster;
-                if (!year) year = metadata.year;
-            }
-
-
-            try {
-                const { error } = await supabase
-                    .from('movie_reviews')
-                    .insert([{ title, rating, review, poster, year, director, genre }]);
-                if (error) throw error;
-                
-                reviewForm.reset();
-                reviewForm.style.display = 'none';
-                adminToggle.textContent = '+ Add Review';
-                await loadDatabaseReviews();
-            } catch (err) { 
-                alert("Insertion operation failure instance: " + err.message); 
-            } finally {
-                submitBtn.textContent = "Publish Review";
-                submitBtn.disabled = false;
-            }
-        });
-
-
-        // Removal Handler Logic Row Engine Execution
-        async function deleteReviewRow(id, title) {
-            if (prompt(`To confirm deletion of "${title}", please enter password:`) !== ADMIN_PASSWORD) {
-                alert("Security Error: Incorrect authorization password.");
-                return;
-            }
-            if (!supabase) return;
-            try {
-                const { error } = await supabase.from('movie_reviews').delete().eq('id', id);
-                if (error) throw error;
-                await loadDatabaseReviews();
-            } catch (err) { 
-                alert("Delete error: " + err.message); 
-            }
-        }
-
-
-        // Share Link Utilities
-        function shareToTwitter(movieTitle) {
-            const text = encodeURIComponent(`Check out my review for ${movieTitle} on OnlineTheater!`);
-            window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(window.location.href)}`, '_blank');
-        }
-
-
-        // Dynamic Filtering Routing Setup
-        function applyFiltersAndSorting() {
-            const query = searchInput.value.toLowerCase().trim();
-            const sortBy = sortInput.value;
-            
-            let filtered = localReviewsCache.filter(movie => {
-                return (movie.title && movie.title.toLowerCase().includes(query)) ||
-                       (movie.review && movie.review.toLowerCase().includes(query)) ||
-                       (movie.director && movie.director.toLowerCase().includes(query)) ||
-                       (movie.genre && movie.genre.toLowerCase().includes(query)) ||
-                       (movie.year && movie.year.toString().includes(query));
-            });
-
-
-            if (sortBy === 'newest') filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            else if (sortBy === 'oldest') filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-            else if (sortBy === 'rating-desc') filtered.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
-            else if (sortBy === 'rating-asc') filtered.sort((a, b) => parseFloat(a.rating) - parseFloat(b.rating));
-
-
-            renderFeed(filtered);
-        }
-
-
-        searchInput.addEventListener('input', applyFiltersAndSorting);
-        sortInput.addEventListener('change', applyFiltersAndSorting);
-
-
-        // Backup Event Triggers
-        document.getElementById('backup-db-link').addEventListener('click', async (e) => {
-            e.preventDefault();
-            if (prompt("Enter password to download structural data snapshot:") !== ADMIN_PASSWORD) return;
-            if (!supabase) return;
-            try {
-                let { data, error } = await supabase.from('movie_reviews').select('*');
-                if (error) throw error;
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-                const a = document.createElement('a');
-                a.setAttribute("href", dataStr);
-                a.setAttribute("download", "onlinetheater_backup.json");
-                a.click();
-            } catch (err) { 
-                alert("Backup fault: " + err.message); 
-            }
-        });
-
-
-        // Feed XML Construction Utilities
-        document.getElementById('rss-gen-link').addEventListener('click', (e) => {
-            e.preventDefault();
-            const siteUrl = window.location.origin + window.location.pathname;
-            let rssItemsXml = localReviewsCache.map(movie => `
-                <item> 
-                    <title>${movie.title} [★ ${movie.rating}]</title> 
-                    <link>${siteUrl}</link> 
-                    <description>${movie.review.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</description> 
-                    <pubDate>${new Date(movie.created_at).toUTCString()}</pubDate> 
-                </item>`).join('');
-                
-            const completeRssXml = `<?xml version="1.0" encoding="UTF-8" ?> 
-            <rss version="2.0"> 
-                <channel> 
-                    <title>OnlineTheater Reviews Feed</title> 
-                    <link>${siteUrl}</link> 
-                    <description>Minimalist cinema critique streams</description> 
-                    ${rssItemsXml} 
-                </channel> 
-            </rss>`;
-            
-            const blob = new Blob([completeRssXml], { type: 'application/xml' });
-            const blobUrl = URL.createObjectURL(blob);
-            window.open(blobUrl, '_blank');
-        });
-
-
-        // Theme Storage and Inversion Handling
-        themeBtn.addEventListener('click', () => {
-            document.body.classList.toggle('dark-theme');
-            localStorage.setItem('theater-theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
-        });
-        
-        if (localStorage.getItem('theater-theme') === 'dark') {
-            document.body.classList.add('dark-theme');
-        }
-
-
-        // Initialize Application
-        loadDatabaseReviews();
-        runCounterTracker();
-    </script>
+  /* ── BOOT ── */
+  loadReviews();
+  trackViews();
+</script>
 </body>
 </html>
