@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Theatre</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #f5f0e8;
+            --ink: #1c1a17;
+            --dim: #6b6457;
+            --rule: #d4cec4;
+            --accent: #c0392b;
+            --surface: #eee9df;
+            --shadow: rgba(0,0,0,0.10);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            background-color: var(--cream);
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        /* ── Layout ── */
+        .stage { max-width: 700px; margin: 0 auto; padding: 0 32px 80px; }
+
+        /* ── Header ── */
+        header {
+            text-align: center;
+            padding: 60px 0 44px;
+            border-bottom: 1px solid var(--rule);
+            margin-bottom: 0;
+        }
+
+        .site-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(2rem, 8vw, 3.2rem);
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--ink);
+            line-height: 1.1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+        }
+        .site-name span { color: var(--accent); display: inline; }
+
+        .header-sub {
+            display: flex; align-items: center; gap: 12px;
+            margin: 18px auto 22px; max-width: 340px;
+        }
+        .header-sub::before { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--rule)); }
+        .header-sub::after  { content: ''; flex: 1; height: 1px; background: linear-gradient(to left,  transparent, var(--rule)); }
+        .header-sub span { color: var(--dim); font-size: 0.8rem; }
+
+        .controls-row {
+            display: flex; align-items: center; justify-content: center;
+            gap: 12px; flex-wrap: wrap;
+        }
+
+        .admin-btn {
+            font-family: 'Montserrat', sans-serif; font-size: 0.6rem;
+            letter-spacing: 0.18em; text-transform: uppercase;
+            background: none; border: 1px solid var(--rule);
+            color: var(--dim); padding: 8px 18px;
+            border-radius: 2px; cursor: pointer; transition: all 0.25s ease;
+        }
+        .admin-btn:hover { border-color: var(--ink); color: var(--ink); }
+        .admin-btn.unlocked { border-color: var(--accent); color: var(--accent); }
+
+        /* ── Search ── */
+        .search-wrap {
+            position: relative; max-width: 440px;
+            margin: 40px auto 52px;
+        }
+        .search-input {
+            width: 100%; padding: 11px 18px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.85rem; letter-spacing: 0.04em;
+            color: var(--ink); background: transparent;
+            border: none; border-bottom: 1.5px solid var(--rule);
+            outline: none; transition: border-color 0.25s ease;
+        }
+        .search-input::placeholder { color: #aaa9a3; }
+        .search-input:focus { border-color: var(--ink); }
+
+        /* ── Add/Edit Panel ── */
+        .add-panel {
+            background: var(--surface); border: 1px dashed var(--rule);
+            border-radius: 3px; padding: 30px 32px;
+            margin-bottom: 52px; display: none;
+        }
+        .add-panel.visible { display: block; }
+
+        .panel-header {
+            display: flex; align-items: center; gap: 14px; margin-bottom: 22px;
+        }
+        .panel-header::before, .panel-header::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+        .panel-label {
+            font-family: 'Montserrat', sans-serif; font-size: 0.6rem;
+            letter-spacing: 0.28em; text-transform: uppercase;
+            color: var(--dim); white-space: nowrap;
+        }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-full { grid-column: 1 / -1; }
+
+        .tmdb-row { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; }
+        .tmdb-search-btn {
+            font-family: 'Montserrat', sans-serif; font-size: 0.55rem; letter-spacing: 0.15em;
+            text-transform: uppercase; white-space: nowrap;
+            background: none; border: 1px solid var(--rule);
+            color: var(--dim); padding: 12px 16px;
+            border-radius: 2px; cursor: pointer; transition: all 0.25s;
+            flex-shrink: 0;
+        }
+        .tmdb-search-btn:hover { border-color: var(--ink); color: var(--ink); }
+
+        .tmdb-results {
+            grid-column: 1 / -1; display: none;
+            gap: 10px; flex-wrap: wrap; margin-top: -4px;
+        }
+        .tmdb-results.open { display: flex; }
+        .tmdb-result-item {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--cream); border: 1px solid var(--rule);
+            border-radius: 2px; padding: 6px 10px; cursor: pointer;
+            transition: border-color 0.2s; font-size: 0.85rem;
+        }
+        .tmdb-result-item:hover { border-color: var(--ink); }
+        .tmdb-result-item img { width: 28px; height: 40px; object-fit: cover; border-radius: 1px; }
+        .tmdb-result-item span { color: var(--ink); font-size: 0.85rem; }
+        .tmdb-result-item small { color: var(--dim); font-size: 0.75rem; }
+        .tmdb-status { font-size: 0.85rem; font-style: italic; color: var(--dim); padding: 6px 0; }
+
+        input[type=text], input[type=url], select, textarea {
+            width: 100%; padding: 11px 14px;
+            font-family: 'Cormorant Garamond', serif; font-size: 1rem;
+            background: var(--cream); border: 1px solid var(--rule);
+            border-radius: 2px; color: var(--ink);
+            transition: border-color 0.25s; letter-spacing: 0.02em; appearance: none;
+        }
+        input[type=text]:focus, input[type=url]:focus, select:focus, textarea:focus {
+            outline: none; border-color: var(--ink);
+        }
+        textarea { resize: vertical; line-height: 1.6; font-style: italic; }
+        ::placeholder { color: #aaa9a3; font-style: italic; }
+
+        .btn-submit {
+            font-family: 'Montserrat', sans-serif; font-size: 0.65rem;
+            letter-spacing: 0.25em; text-transform: uppercase;
+            background: var(--ink); color: var(--cream);
+            border: none; padding: 14px 28px; border-radius: 2px;
+            font-weight: 500; cursor: pointer; width: 100%; margin-top: 4px;
+            transition: background 0.25s ease, transform 0.15s ease;
+        }
+        .btn-submit:hover { background: #3a3630; transform: translateY(-1px); }
+        .btn-submit:active { transform: translateY(0); }
+
+        /* ── Review Cards ── */
+        .reviews-list { display: flex; flex-direction: column; gap: 0; }
+
+        .movie-card {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            padding-bottom: 52px;
+            margin-bottom: 52px;
+            border-bottom: 1px solid var(--rule);
+            position: relative;
+            opacity: 0;
+            transform: translateY(16px);
+            animation: fadeUp 0.5s ease forwards;
+        }
+        .movie-card:last-child { border-bottom: none; margin-bottom: 0; }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Poster */
+        .poster-side {
+            flex-shrink: 0;
+            width: 120px;
+            height: 180px;
+            border-radius: 3px;
+            overflow: hidden;
+            background: #ddd8ce;
+            box-shadow: 3px 5px 18px var(--shadow);
+            position: relative;
+        }
+        .poster-image {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+            transition: transform 0.4s ease;
+        }
+        .movie-card:hover .poster-image { transform: scale(1.04); }
+        .poster-placeholder {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
+            color: #999;
+        }
+
+        /* Review side — vertically centered */
+        .review-side {
+            padding: 0 0 0 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .review-quote {
+            font-size: 1.35rem;
+            font-weight: 300;
+            line-height: 1.72;
+            color: #3a3630;
+            font-style: normal;
+            margin: 0;
+        }
+
+        .movie-title-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--dim);
+            margin: 0;
+        }
+
+        /* Admin controls */
+        .card-admin-controls {
+            position: absolute; top: 0; right: 0;
+            display: none; gap: 6px;
+        }
+        .card-admin-controls.visible { display: flex; }
+
+        .delete-btn, .edit-btn {
+            width: 26px; height: 26px;
+            background: none; border: 1px solid transparent;
+            border-radius: 50%; font-size: 0.85rem;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: all 0.2s;
+            padding: 0; line-height: 1; color: var(--dim);
+        }
+        .delete-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(192,57,43,0.08); }
+        .edit-btn:hover { border-color: var(--ink); color: var(--ink); background: rgba(28,26,23,0.06); }
+
+        /* ── Empty state ── */
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--dim); display: none; }
+        .empty-state .reel { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
+        .empty-state p {
+            font-family: 'Montserrat', sans-serif; font-size: 0.65rem;
+            letter-spacing: 0.25em; text-transform: uppercase;
+        }
+
+        /* ── Footer ── */
+        .site-footer { text-align: center; padding: 40px 32px 60px; max-width: 700px; margin: 0 auto; }
+        .footer-rule { display: flex; align-items: center; gap: 12px; margin: 0 auto 20px; max-width: 300px; }
+        .footer-rule::before, .footer-rule::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+        .footer-rule span { color: var(--dim); font-size: 0.75rem; opacity: 0.5; }
+        .footer-tip {
+            font-family: 'Montserrat', sans-serif; font-size: 0.45rem;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--dim); opacity: 0.6; margin-bottom: 5px;
+        }
+        .footer-tip a { color: var(--dim); text-decoration: none; border-bottom: 1px solid var(--rule); transition: border-color 0.2s; }
+        .footer-tip a:hover { border-color: var(--dim); }
+        .footer-copyright {
+            font-family: 'Cormorant Garamond', serif; font-size: 0.65rem;
+            font-style: italic; color: var(--dim); opacity: 0.45;
+        }
+
+        /* ── Mobile admin hint — invisible secret tap target ── */
+        .mobile-admin-hint {
+            display: block; font-size: 0.5rem; margin-top: 8px;
+            color: transparent; opacity: 0; pointer-events: none;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        @media (max-width: 600px) { .mobile-admin-hint { pointer-events: auto; } }
+
+        /* ── Light theme (same as base, already light) ── */
+        [data-theme="light"] {
+            --cream: #f5f0e8; --ink: #1c1a17; --dim: #6b6457;
+            --rule: #d4cec4; --surface: #eee9df; --shadow: rgba(0,0,0,0.10);
+        }
+
+        /* ── Dark theme ── */
+        [data-theme="dark"] {
+            --cream: #141210; --ink: #f0ece2; --dim: #a09880;
+            --rule: #2e2b26; --surface: #1e1b17; --shadow: rgba(0,0,0,0.4);
+            --accent: #e05545;
+        }
+        [data-theme="dark"] body { background-color: var(--cream); color: var(--ink); }
+        [data-theme="dark"] input[type=text],
+        [data-theme="dark"] input[type=url],
+        [data-theme="dark"] select,
+        [data-theme="dark"] textarea { background: #1e1b17; color: var(--ink); border-color: var(--rule); }
+        [data-theme="dark"] .search-input { color: var(--ink); }
+        [data-theme="dark"] .btn-submit { background: var(--ink); color: #141210; }
+
+        /* ── Theme toggle btn ── */
+        .theme-btn {
+            position: fixed;
+            top: 18px;
+            right: 22px;
+            z-index: 999;
+            font-size: 1.25rem;
+            background: none;
+            border: none;
+            color: var(--dim);
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+            transition: color 0.25s ease;
+        }
+        .theme-btn:hover { color: var(--ink); }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .stage { padding: 0 20px 60px; }
+            header { padding: 42px 0 32px; }
+            .poster-side { width: 100px; height: 150px; }
+            .review-side { padding-left: 18px; }
+            .review-quote { font-size: 1.2rem; }
+            .movie-title-text { font-size: 0.78rem; }
+            .form-grid { grid-template-columns: 1fr; }
+            .add-panel { padding: 22px 18px; }
+            .tmdb-row { flex-direction: column; align-items: stretch; }
+            .tmdb-search-btn { width: 100%; text-align: center; }
+            input[type=text], input[type=url], select, textarea, .search-input { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="stage">
+
+    <header>
+        <div class="site-name" id="siteName"><span style="color:inherit">Online</span><span>Theatre</span></div>
+        <span class="mobile-admin-hint" id="mobileAdminHint">✦ &nbsp; admin &nbsp; ✦</span>
+        <div class="header-sub"><span>✦</span></div>
+        <div class="controls-row">
+            <button class="admin-btn" id="adminBtn" style="display:none">⏏ Lock Admin</button>
+        </div>
+    </header>
+
+    <!-- Theme toggle (fixed top-right) -->
+    <button class="theme-btn" id="themeBtn">☀</button>
+
+    <!-- Search -->
+    <div class="search-wrap">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search a title…" autocomplete="off">
+    </div>
+
+    <!-- Add / Edit Review Panel (admin only) -->
+    <div class="add-panel" id="addPanel">
+        <div class="panel-header">
+            <span class="panel-label" id="panelLabel">Write a New Review</span>
+        </div>
+        <div class="form-grid">
+            <input type="text" id="inputTitle" placeholder="Film title…" style="grid-column:1/-1">
+            <div class="tmdb-row">
+                <input type="url" id="inputImage" placeholder="Poster URL — or search TMDb below…" style="flex:1;width:auto;">
+                <button class="tmdb-search-btn" id="tmdbBtn">Search TMDb</button>
+            </div>
+            <div class="tmdb-results" id="tmdbResults"></div>
+            <textarea id="inputReview" class="form-full" rows="3" placeholder="Your critique…"></textarea>
+            <input type="hidden" id="editingId" value="">
+            <button class="btn-submit form-full" id="submitBtn">Publish to the Archive</button>
+        </div>
+    </div>
+
+    <!-- Reviews list -->
+
+    <div class="empty-state" id="emptyState">
+        <div class="reel">🎞</div>
+        <p>No screenings yet</p>
+    </div>
+
+    <div class="reviews-list" id="moviesList"></div>
+
+</div>
+
+<footer class="site-footer">
+    <div class="footer-rule"><span>✦</span></div>
+    <p class="footer-tip">Poster images sourced from <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDb</a>, official studio press kits, or promotional materials.</p>
+    <p class="footer-copyright">All movie posters and images are property of their respective studios and are used here for review purposes only.</p>
+</footer>
+
+<script>
+// ── Config ────────────────────────────────────────────
+const STORAGE_KEY    = 'online_theatre_reviews_v2';
+const TMDB_API_KEY   = '990f557393f455e2afe6ae57273db557';
+const TMDB_BASE      = 'https://api.themoviedb.org/3';
+const TMDB_IMG_BASE  = 'https://image.tmdb.org/t/p/w342';
+const ADMIN_PASS    = 'curtain123';
+
+// ── Admin state ───────────────────────────────────────
+let isAdmin = false;
+
+function setAdminMode(on) {
+    isAdmin = on;
+    const btn = document.getElementById('adminBtn');
+    const panel = document.getElementById('addPanel');
+    const hint = document.getElementById('mobileAdminHint');
+    btn.style.display = on ? 'inline-block' : 'none';
+    btn.classList.toggle('unlocked', on);
+    panel.classList.toggle('visible', on);
+    document.querySelectorAll('.card-admin-controls').forEach(el => {
+        el.classList.toggle('visible', on);
+    });
+    if (on && window.innerWidth <= 600) {
+        setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+}
+
+// Secret shortcut: Shift + A + D
+const keysHeld = new Set();
+document.addEventListener('keydown', e => {
+    keysHeld.add(e.key);
+    if (keysHeld.has('A') && keysHeld.has('D') && keysHeld.has('Shift') && !isAdmin) {
+        const pass = prompt('Enter admin password:');
+        if (pass === ADMIN_PASS) { setAdminMode(true); }
+        else if (pass !== null) { alert('Incorrect password.'); }
+    }
+});
+document.addEventListener('keyup', e => keysHeld.delete(e.key));
+document.getElementById('adminBtn').addEventListener('click', () => setAdminMode(false));
+
+// ── Storage helpers ───────────────────────────────────
+function getAllReviews() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+    catch(e) { return []; }
+}
+function saveAllReviews(arr) { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+function deleteReviewById(id) { saveAllReviews(getAllReviews().filter(r => r.id !== id)); }
+function updateReviewById(id, updates) {
+    saveAllReviews(getAllReviews().map(r => r.id === id ? {...r, ...updates} : r));
+}
+
+// ── Render helpers ────────────────────────────────────
+const list       = document.getElementById('moviesList');
+const emptyState = document.getElementById('emptyState');
+
+function updateEmptyState() {
+    const cards = list.querySelectorAll('.movie-card');
+    emptyState.style.display = cards.length === 0 ? 'block' : 'none';
+}
+
+function renderCard(data, prepend = false) {
+    let mediaHTML = `<div class="poster-placeholder">No Image</div>`;
+    if (data.image) {
+        mediaHTML = `<img class="poster-image" src="${data.image}" alt="${data.title}"
+            onerror="this.parentElement.innerHTML='<div class=\\'poster-placeholder\\'>No Image</div>'">`;
+    }
+
+    const card = document.createElement('article');
+    card.className = 'movie-card';
+    card.dataset.id = data.id;
+    card.dataset.title = data.title.toLowerCase();
+    card.dataset.review = data.text.toLowerCase();
+    card.innerHTML = `
+        <div class="card-admin-controls${isAdmin ? ' visible' : ''}">
+            <button class="edit-btn"   aria-label="Edit"   title="Edit review">✎</button>
+            <button class="delete-btn" aria-label="Delete" title="Delete review">✕</button>
+        </div>
+        <div class="poster-side">${mediaHTML}</div>
+        <div class="review-side">
+            <p class="review-quote">${data.text}</p>
+            <h2 class="movie-title-text">${data.title}</h2>
+        </div>
+    `;
+
+    card.querySelector('.edit-btn').addEventListener('click', () => {
+        document.getElementById('inputTitle').value  = data.title;
+        document.getElementById('inputReview').value = data.text;
+        document.getElementById('inputImage').value  = data.image || '';
+        document.getElementById('editingId').value   = data.id;
+        document.getElementById('panelLabel').textContent = 'Edit Review';
+        document.getElementById('submitBtn').textContent  = 'Save Changes';
+        document.getElementById('addPanel').scrollIntoView({behavior:'smooth', block:'start'});
+    });
+
+    card.querySelector('.delete-btn').addEventListener('click', () => {
+        if (confirm('Remove this review from the archive?')) {
+            deleteReviewById(data.id);
+            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(-10px)';
+            setTimeout(() => { card.remove(); updateEmptyState(); }, 300);
+        }
+    });
+
+    card.id = 'review-' + data.id;
+    if (prepend) list.prepend(card); else list.appendChild(card);
+    updateEmptyState();
+}
+
+// ── Form submit ───────────────────────────────────────
+document.getElementById('submitBtn').addEventListener('click', () => {
+    const titleEl  = document.getElementById('inputTitle');
+    const reviewEl = document.getElementById('inputReview');
+    const editId   = document.getElementById('editingId').value;
+
+    if (!titleEl.value.trim() || !reviewEl.value.trim()) {
+        alert('Please fill in the film title and your critique.');
+        return;
+    }
+
+    if (editId) {
+        const updates = {
+            title: titleEl.value.trim(),
+            image: document.getElementById('inputImage').value.trim(),
+            text:  reviewEl.value.trim()
+        };
+        updateReviewById(+editId, updates);
+        const existing = document.querySelector(`.movie-card[data-id="${editId}"]`);
+        if (existing) existing.remove();
+        renderCard({id: +editId, ...updates}, false);
+        document.getElementById('editingId').value = '';
+        document.getElementById('panelLabel').textContent = 'Write a New Review';
+        document.getElementById('submitBtn').textContent  = 'Publish to the Archive';
+    } else {
+        const newReview = {
+            id:    Date.now(),
+            title: titleEl.value.trim(),
+            image: document.getElementById('inputImage').value.trim(),
+            text:  reviewEl.value.trim()
+        };
+        const reviews = getAllReviews();
+        reviews.push(newReview);
+        saveAllReviews(reviews);
+        renderCard(newReview, true);
+    }
+
+    titleEl.value  = '';
+    reviewEl.value = '';
+    document.getElementById('inputImage').value = '';
+    document.getElementById('tmdbResults').className = 'tmdb-results';
+});
+
+// ── TMDb poster search ────────────────────────────────
+document.getElementById('tmdbBtn').addEventListener('click', async () => {
+    const title = document.getElementById('inputTitle').value.trim();
+    const resultsEl = document.getElementById('tmdbResults');
+    if (!title) { alert('Enter a film title first.'); return; }
+
+    resultsEl.className = 'tmdb-results open';
+    resultsEl.innerHTML = '<span class="tmdb-status">Searching…</span>';
+    try {
+        const res = await fetch(`${TMDB_BASE}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`);
+        const data = await res.json();
+        if (!data.results || data.results.length === 0) {
+            resultsEl.innerHTML = '<span class="tmdb-status">No results found.</span>';
+            return;
+        }
+        resultsEl.innerHTML = '';
+        data.results.slice(0, 6).forEach(movie => {
+            if (!movie.poster_path) return;
+            const posterUrl = TMDB_IMG_BASE + movie.poster_path;
+            const year = movie.release_date ? movie.release_date.slice(0,4) : '';
+            const item = document.createElement('div');
+            item.className = 'tmdb-result-item';
+            item.innerHTML = `<img src="${posterUrl}" alt="${movie.title}"><div><span>${movie.title}</span><br><small>${year}</small></div>`;
+            item.addEventListener('click', () => {
+                document.getElementById('inputImage').value = posterUrl;
+                if (!document.getElementById('inputTitle').value.trim()) {
+                    document.getElementById('inputTitle').value = movie.title;
+                }
+                resultsEl.className = 'tmdb-results';
+            });
+            resultsEl.appendChild(item);
+        });
+    } catch(e) {
+        resultsEl.innerHTML = '<span class="tmdb-status">Error fetching from TMDb. Check your API key.</span>';
+    }
+});
+
+// ── Search ────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', e => {
+    const term = e.target.value.toLowerCase().trim();
+    let visibleCount = 0;
+    list.querySelectorAll('.movie-card').forEach(card => {
+        const title  = card.dataset.title  || '';
+        const review = card.dataset.review || '';
+        const matches = !term || title.includes(term) || review.includes(term);
+        card.style.display = matches ? '' : 'none';
+        if (matches) visibleCount++;
+    });
+    const hasCards = getAllReviews().length > 0;
+    if (hasCards && term && visibleCount === 0) {
+        emptyState.style.display = 'block';
+        emptyState.querySelector('p').textContent = 'No reviews match \u201c' + e.target.value + '\u201d';
+    } else {
+        emptyState.querySelector('p').textContent = 'No screenings yet';
+        updateEmptyState();
+    }
+});
+
+// ── Mobile admin long-press ───────────────────────────
+const mobileHint = document.getElementById('mobileAdminHint');
+let pressTimer = null;
+mobileHint.addEventListener('touchstart', e => {
+    e.preventDefault();
+    pressTimer = setTimeout(() => {
+        if (isAdmin) return;
+        const pass = prompt('Enter admin password:');
+        if (pass === ADMIN_PASS) { setAdminMode(true); }
+        else if (pass !== null) { alert('Incorrect password.'); }
+    }, 600);
+}, { passive: false });
+mobileHint.addEventListener('touchend',   () => clearTimeout(pressTimer));
+mobileHint.addEventListener('touchmove',  () => clearTimeout(pressTimer));
+mobileHint.addEventListener('touchcancel',() => clearTimeout(pressTimer));
+
+// ── Init ──────────────────────────────────────────────
+async function fetchNightcrawlerPoster() {
+    const TMDB_MOVIE_ID = 242582;
+    const CACHE_KEY = 'nightcrawler_poster_url_v2';
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached && cached.startsWith('http')) return cached;
+    try {
+        const res = await fetch(`${TMDB_BASE}/movie/${TMDB_MOVIE_ID}?api_key=${TMDB_API_KEY}`);
+        const data = await res.json();
+        if (data && data.poster_path) {
+            const url = 'https://image.tmdb.org/t/p/w500' + data.poster_path;
+            localStorage.setItem(CACHE_KEY, url);
+            return url;
+        }
+    } catch (e) { console.warn('TMDb poster fetch failed:', e); }
+    return '';
+}
+
+async function loadAll() {
+    const NIGHTCRAWLER_ID = 1000000001;
+    let reviews = getAllReviews();
+    if (!reviews.find(r => r.id === NIGHTCRAWLER_ID)) {
+        reviews.push({
+            id:    NIGHTCRAWLER_ID,
+            title: 'Nightcrawler',
+            image: '',
+            text:  'Amazing! Gripping! Jake Gyllenhaal the Oscar Contender!'
+        });
+        saveAllReviews(reviews);
+    }
+    reviews.forEach(r => renderCard(r, false));
+    updateEmptyState();
+    const posterUrl = await fetchNightcrawlerPoster();
+    if (posterUrl) {
+        const nc = getAllReviews().find(r => r.id === NIGHTCRAWLER_ID);
+        if (nc && nc.image !== posterUrl) {
+            updateReviewById(NIGHTCRAWLER_ID, { image: posterUrl });
+            const card = document.getElementById('review-' + NIGHTCRAWLER_ID);
+            if (card) {
+                const posterSide = card.querySelector('.poster-side');
+                if (posterSide) {
+                    const img = document.createElement('img');
+                    img.className = 'poster-image';
+                    img.src = posterUrl;
+                    img.alt = 'Nightcrawler';
+                    img.onerror = function() {
+                        this.parentElement.innerHTML = '<div class="poster-placeholder">No Image</div>';
+                    };
+                    posterSide.innerHTML = '';
+                    posterSide.appendChild(img);
+                }
+            }
+        }
+    }
+}
+
+loadAll();
+
+// ── Theme toggle ──────────────────────────────────────
+const themeBtn = document.getElementById('themeBtn');
+let isDark = localStorage.getItem('ot_theme') === 'dark';
+
+function applyTheme() {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    document.body.style.backgroundColor = isDark ? '#141210' : '#f5f0e8';
+    themeBtn.textContent = isDark ? '☾' : '☀';
+    localStorage.setItem('ot_theme', isDark ? 'dark' : 'light');
+}
+applyTheme();
+themeBtn.addEventListener('click', () => { isDark = !isDark; applyTheme(); });
+
+</script>
+</body>
+</html>
